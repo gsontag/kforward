@@ -20,12 +20,12 @@ type Client struct {
 }
 
 func NewKubeClient(configStore *config.Store) (*Client, error) {
-	config, err := clientcmd.LoadFromFile(configStore.GetKubeconfig())
+	config, err := clientcmd.LoadFromFile(configStore.Kubeconfig())
 	if err != nil {
 		return nil, fmt.Errorf("error loading kubeconfig: %w", err)
 	}
 
-	fws := configStore.GetForwards()
+	fws := configStore.Forwards()
 	forwards := make(map[string][]KubeForward, 0)
 
 	for _, fw := range fws {
