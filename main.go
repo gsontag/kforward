@@ -2,6 +2,7 @@
 package main
 
 import (
+	"flag"
 	"os"
 
 	"github.com/diamondburned/gotk4/pkg/gio/v2"
@@ -9,10 +10,16 @@ import (
 )
 
 func main() {
+	check := flag.Bool("check", false, "check the configuration against the kubeconfig and exit")
+	flag.Parse()
+	if *check {
+		os.Exit(runCheck())
+	}
 	app := gtk.NewApplication("fr.gsontag.kforward", gio.ApplicationDefaultFlags)
 	app.ConnectActivate(func() { activate(app) })
 
-	if code := app.Run(os.Args); code > 0 {
+	// GApplication parses command line too and would reject our options
+	if code := app.Run(append([]string{os.Args[0]}, flag.Args()...)); code > 0 {
 		os.Exit(code)
 	}
 }

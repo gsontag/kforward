@@ -2,73 +2,100 @@
 package kube
 
 import (
+	"errors"
 	"fmt"
+	"maps"
+	"slices"
 
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/clientcmd/api"
-
-	"gsontag.fr/kforward/internal/config"
 )
 
-// LiveForward pairs a configured forward with its runtime state.
-type LiveForward struct {
-	Forward  *config.Forward
-	IsActive bool
+// Cluster is a kubeconfig context resolved into a usable REST configuration.
+type Cluster struct {
+	Context string
+	// Namespace is the default namespace of the context, "default" when unset.
+	Namespace string
+	// Config is shared between callers and must not be modified
+	Config *rest.Config
 }
 
-// Client is the access layer to the Kubernetes clusters.
+type contextEntry struct {
+	cluster *Cluster
+	err     error
+}
+
+// Client is an immutable snapshot of the kubeconfig: reloading means building
+// a new one. It is safe for concurrent use.
 type Client struct {
-	config     *config.Store
-	kubeConfig *api.Config
-	forwards   map[string][]LiveForward
+	current  string
+	contexts map[string]contextEntry
 }
 
-// NewKubeClient loads the kubeconfig and indexes the forwards by group.
-func NewKubeClient(configStore *config.Store) (*Client, error) {
-	config, err := clientcmd.LoadFromFile(configStore.Kubeconfig())
+// NewClient loads the kubeconfig. An empty path applies the kubectl loading
+// rules: the KUBECONFIG files, merged, then ~/.kube/config. A broken context
+// does not fail the whole load: its error is returned by Cluster.
+func NewClient(kubeconfigPath string) (*Client, error) {
+	rules := clientcmd.NewDefaultClientConfigLoadingRules()
+	rules.ExplicitPath = kubeconfigPath
+
+	raw, err := rules.Load()
 	if err != nil {
-		return nil, fmt.Errorf("error loading kubeconfig: %w", err)
+		return nil, fmt.Errorf("load kubeconfig: %w", err)
 	}
 
-	fws := configStore.Forwards()
-	forwards := make(map[string][]LiveForward, 0)
+	contexts := make(map[string]contextEntry, len(raw.Contexts))
+	for name := range raw.Contexts {
+		contexts[name] = resolveContext(raw, name, rules)
+	}
+	return &Client{current: raw.CurrentContext, contexts: contexts}, nil
+}
 
-	for _, fw := range fws {
-		if group := forwards[fw.Group]; group != nil {
-			forwards[fw.Group] = append(group, LiveForward{
-				Forward:  &fw,
-				IsActive: false,
-			})
-		} else {
-			forwards[fw.Group] = []LiveForward{
-				{
-					Forward:  &fw,
-					IsActive: false,
-				},
-			}
+func resolveContext(
+	raw *api.Config,
+	name string,
+	rules *clientcmd.ClientConfigLoadingRules,
+) contextEntry {
+	// Without this check, client-go reports an obscure KUBERNETES_MASTER error.
+	if cluster := raw.Contexts[name].Cluster; raw.Clusters[cluster] == nil {
+		return contextEntry{err: fmt.Errorf("context %q: cluster %q not found", name, cluster)}
+	}
+
+	cc := clientcmd.NewNonInteractiveClientConfig(*raw, name, &clientcmd.ConfigOverrides{}, rules)
+	restConfig, err := cc.ClientConfig()
+	if err != nil {
+		return contextEntry{err: fmt.Errorf("context %q: %w", name, err)}
+	}
+	namespace, _, err := cc.Namespace()
+	if err != nil {
+		return contextEntry{err: fmt.Errorf("context %q: %w", name, err)}
+	}
+	return contextEntry{cluster: &Cluster{Context: name, Namespace: namespace, Config: restConfig}}
+}
+
+// Contexts returns the names of the kubeconfig contexts, sorted.
+func (c *Client) Contexts() []string {
+	return slices.Sorted(maps.Keys(c.contexts))
+}
+
+// CurrentContext returns the current-context of the kubeconfig, possibly empty
+func (c *Client) CurrentContext() string {
+	return c.current
+}
+
+// Cluster returns the cluster of the named context, or of the current context
+// when name is empty
+func (c *Client) Cluster(name string) (*Cluster, error) {
+	if name == "" {
+		if c.current == "" {
+			return nil, errors.New("no context given and no current-context in kubeconfig")
 		}
+		name = c.current
 	}
-
-	// TODO: activate autostart
-
-	return &Client{
-		config:     configStore,
-		kubeConfig: config,
-		forwards:   forwards,
-	}, nil
-}
-
-// GetForwards returns the forwards, indexed by group.
-func (c *Client) GetForwards() map[string][]LiveForward {
-	return c.forwards
-}
-
-// GetContexts returns the names of the contexts defined in the kubeconfig.
-func (c *Client) GetContexts() []string {
-	keys := make([]string, 0, len(c.kubeConfig.Contexts))
-	for k := range c.kubeConfig.Contexts {
-		keys = append(keys, k)
+	entry, ok := c.contexts[name]
+	if !ok {
+		return nil, fmt.Errorf("unknown context %q", name)
 	}
-
-	return keys
+	return entry.cluster, entry.err
 }
