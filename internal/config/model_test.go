@@ -3,6 +3,7 @@ package config
 import (
 	"bytes"
 	"encoding/json"
+	"strings"
 	"testing"
 
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -121,5 +122,109 @@ func check[T comparable](t *testing.T, name string, got, want T) {
 	t.Helper()
 	if got != want {
 		t.Errorf("%s: got %v, want %v", name, got, want)
+	}
+}
+
+func validForward() Forward {
+	return Forward{
+		UUID: "1", Name: "grafana", Target: "svc/grafana",
+		LocalPort: 3000, RemotePort: intstr.FromInt32(80),
+	}
+}
+
+func TestForwardValidate(t *testing.T) {
+	tests := []struct {
+		name    string
+		mutate  func(*Forward)
+		wantErr string // vide = doit être valide
+	}{
+		{"valide", func(*Forward) {}, ""},
+		{"sans nom", func(f *Forward) { f.Name = "  " }, "name is required"},
+		{"port local à 0", func(f *Forward) { f.LocalPort = 0 }, "local-port is required"},
+		{"sans cible", func(f *Forward) { f.Target = "" }, "target is required"},
+		{"port distant absent", func(f *Forward) { f.RemotePort = intstr.IntOrString{} }, "between 1 and 65535"},
+		{"port distant trop grand", func(f *Forward) { f.RemotePort = intstr.FromInt32(70000) }, "between 1 and 65535"},
+		{"port nommé", func(f *Forward) { f.RemotePort = intstr.FromString("http-web") }, ""},
+		{"port nommé en majuscules", func(f *Forward) { f.RemotePort = intstr.FromString("HTTP") }, "remote-port:"},
+		{"port nommé trop long", func(f *Forward) { f.RemotePort = intstr.FromString("un-nom-bien-trop-long") }, "remote-port:"},
+		{"port nommé vide", func(f *Forward) { f.RemotePort = intstr.FromString("") }, "remote-port:"},
+		{"adresse localhost", func(f *Forward) { f.Address = "localhost" }, ""},
+		{"adresse 0.0.0.0", func(f *Forward) { f.Address = "0.0.0.0" }, ""},
+		{"adresse IPv6", func(f *Forward) { f.Address = "::1" }, ""},
+		{"adresse invalide", func(f *Forward) { f.Address = "pas-une-ip" }, `address "pas-une-ip"`},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			f := validForward()
+			tt.mutate(&f)
+			err := f.Validate()
+
+			if tt.wantErr == "" {
+				if err != nil {
+					t.Fatalf("got error %v, want nil", err)
+				}
+				return
+			}
+			if err == nil || !strings.Contains(err.Error(), tt.wantErr) {
+				t.Errorf("got error %v, want it to contain %q", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestConfigValidate(t *testing.T) {
+	second := validForward()
+	second.UUID, second.Name = "2", "prometheus"
+
+	tests := []struct {
+		name     string
+		forwards []Forward
+		wantErrs []string // vide = doit être valide
+	}{
+		{"vide", nil, nil},
+		{"deux forwards distincts", []Forward{validForward(), second}, nil},
+		{
+			"uuid en double",
+			[]Forward{validForward(), validForward()},
+			[]string{`forward #2 (grafana): duplicate uuid "1"`},
+		},
+		{
+			"uuid vide",
+			[]Forward{{Name: "grafana", Target: "svc/grafana", LocalPort: 3000, RemotePort: intstr.FromInt32(80)}},
+			[]string{"forward #1 (grafana): uuid is required"},
+		},
+		{
+			// Aucune erreur ne doit être perdue, et chacune porte son préfixe
+			"plusieurs erreurs",
+			[]Forward{validForward(), {UUID: "1", RemotePort: intstr.FromInt32(80)}},
+			[]string{
+				`forward #2: duplicate uuid "1"`,
+				"forward #2: name is required",
+				"forward #2: target is required",
+				"forward #2: local-port is required",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := (&Config{Forwards: tt.forwards}).Validate()
+
+			if len(tt.wantErrs) == 0 {
+				if err != nil {
+					t.Fatalf("got error %v, want nil", err)
+				}
+				return
+			}
+			if err == nil {
+				t.Fatalf("got nil error, want %d errors", len(tt.wantErrs))
+			}
+			for _, want := range tt.wantErrs {
+				if !strings.Contains(err.Error(), want) {
+					t.Errorf("error should contain %q, got:\n%v", want, err)
+				}
+			}
+		})
 	}
 }

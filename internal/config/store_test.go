@@ -1,6 +1,8 @@
 package config
 
 import (
+	"errors"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -152,4 +154,32 @@ func TestConcurrentAccess(t *testing.T) {
 		wg.Go(func() { _ = s.SetKubeconfig("/k") })
 	}
 	wg.Wait()
+}
+
+func TestLoadInvalidConfigKeepsPrevious(t *testing.T) {
+	s, path := loadStore(t)
+
+	// JSON correct, mais le forward n'a pas de port local
+	writeFile(t, path, `{"forwards": [{"uuid": "1", "name": "x", "target": "svc/x", "remote-port": 80}]}`)
+	err := s.Load()
+	if err == nil {
+		t.Fatal("Load: got nil error, want a validation error")
+	}
+	if !strings.Contains(err.Error(), "local-port is required") {
+		t.Errorf("got error %v, want it to mention the local port", err)
+	}
+
+	check(t, "Name", s.Forwards()[0].Name, "grafana")
+}
+
+func TestWriteRefusesInvalidConfig(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "config.json")
+	cfg := &Config{Forwards: []Forward{{UUID: "1"}}}
+
+	if err := writeConfig(path, cfg); err == nil {
+		t.Fatal("writeConfig: got nil error, want a validation error")
+	}
+	if _, err := os.Stat(path); !errors.Is(err, fs.ErrNotExist) {
+		t.Errorf("config file should not exist, Stat error: %v", err)
+	}
 }

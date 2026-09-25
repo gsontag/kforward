@@ -61,6 +61,10 @@ func readConfig(path string) (*Config, error) {
 		return nil, fmt.Errorf("parse %s: %w", path, err)
 	}
 
+	if err := cfg.Validate(); err != nil {
+		return nil, fmt.Errorf("invalid %s: %w", path, err)
+	}
+
 	if cfg.Forwards == nil {
 		cfg.Forwards = []Forward{}
 	}
@@ -93,6 +97,10 @@ func (s *Store) SetKubeconfig(path string) error {
 }
 
 func writeConfig(path string, cfg *Config) error {
+	if err := cfg.Validate(); err != nil {
+		return fmt.Errorf("refusing to save invalid config: %w", err)
+	}
+
 	data, err := json.MarshalIndent(cfg, "", "  ")
 	if err != nil {
 		return fmt.Errorf("encode config: %w", err)
