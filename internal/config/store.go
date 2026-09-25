@@ -14,12 +14,16 @@ import (
 	"github.com/adrg/xdg"
 )
 
+// Store holds the configuration in memory and persists it to a JSON file.
+// It is safe for concurrent use.
 type Store struct {
 	mu     sync.RWMutex
 	path   string
 	config *Config
 }
 
+// DefaultPath returns the XDG path of the configuration file,
+// creating its parent directory if needed.
 func DefaultPath() (string, error) {
 	path, err := xdg.ConfigFile("kforward/config.json")
 	if err != nil {
@@ -28,10 +32,14 @@ func DefaultPath() (string, error) {
 	return path, nil
 }
 
+// NewStore returns a store holding the default configuration.
+// It does not read the file: call Load for that.
 func NewStore(path string) *Store {
 	return &Store{path: path, config: DefaultConfig()}
 }
 
+// Load reads and validates the configuration file. A missing or empty file
+// yields the default configuration. On error, the previous configuration is kept.
 func (s *Store) Load() error {
 	cfg, err := readConfig(s.path)
 	if err != nil {
@@ -71,18 +79,23 @@ func readConfig(path string) (*Config, error) {
 	return &cfg, nil
 }
 
+// Kubeconfig returns the configured kubeconfig path.
+// An empty path means the standard kubectl loading rules.
 func (s *Store) Kubeconfig() string {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.config.Kubeconfig
 }
 
+// Forwards returns a copy of the configured forwards.
 func (s *Store) Forwards() []Forward {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return slices.Clone(s.config.Forwards)
 }
 
+// SetKubeconfig changes the kubeconfig path and saves the file atomically.
+// On error, neither the file nor the in-memory configuration is modified.
 func (s *Store) SetKubeconfig(path string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()

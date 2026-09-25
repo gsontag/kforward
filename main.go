@@ -1,3 +1,4 @@
+// Kforward is a tray indicator to start and stop kubectl-like port-forwards.
 package main
 
 import (
@@ -8,7 +9,7 @@ import (
 )
 
 func main() {
-	app := gtk.NewApplication("fr.gsontag.kforward", gio.ApplicationFlagsNone)
+	app := gtk.NewApplication("fr.gsontag.kforward", gio.ApplicationDefaultFlags)
 	app.ConnectActivate(func() { activate(app) })
 
 	if code := app.Run(os.Args); code > 0 {
@@ -21,5 +22,5 @@ func activate(app *gtk.Application) {
 	window.SetTitle("gotk4 Example")
 	window.SetChild(gtk.NewLabel("Hello from Go!"))
 	window.SetDefaultSize(400, 300)
-	window.Show()
+	window.SetVisible(true)
 }

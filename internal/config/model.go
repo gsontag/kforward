@@ -1,3 +1,4 @@
+// Package config reads, validates and atomically writes the forwards configuration.
 package config
 
 import (
@@ -10,6 +11,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/validation"
 )
 
+// Forward describes one port-forward, as stored in the configuration file.
 type Forward struct {
 	UUID       string             `json:"uuid"`
 	Name       string             `json:"name"`
@@ -24,11 +26,13 @@ type Forward struct {
 	AutoStart  bool               `json:"auto-start"`
 }
 
+// Config is the root structure of the configuration file.
 type Config struct {
 	Kubeconfig string    `json:"kubeconfig,omitempty"`
 	Forwards   []Forward `json:"forwards"`
 }
 
+// BindAddress returns the address to listen on, 127.0.0.1 when none is configured.
 func (f *Forward) BindAddress() string {
 	if f.Address == "" {
 		return "127.0.0.1"
@@ -36,6 +40,8 @@ func (f *Forward) BindAddress() string {
 	return f.Address
 }
 
+// Validate checks the fields of this forward only. It returns every problem
+// found, joined with errors.Join, or nil if the forward is valid.
 func (f *Forward) Validate() error {
 	return errors.Join(f.problems()...)
 }
@@ -72,12 +78,15 @@ func remotePortProblems(p intstr.IntOrString) []error {
 	return errs
 }
 
+// DefaultConfig returns an empty configuration, with a non-nil Forwards slice.
 func DefaultConfig() *Config {
 	return &Config{
 		Forwards: []Forward{},
 	}
 }
 
+// Validate checks every forward and the constraints between them (unique UUIDs).
+// Each error is prefixed with the forward position and name.
 func (c *Config) Validate() error {
 	var errs []error
 	seen := make(map[string]bool, len(c.Forwards))

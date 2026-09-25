@@ -121,7 +121,7 @@ func TestSaveLeavesNoTempFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ReadDir: %v", err)
 	}
-	var names []string
+	names := make([]string, 0, len(entries))
 	for _, e := range entries {
 		names = append(names, e.Name())
 	}
@@ -160,7 +160,11 @@ func TestLoadInvalidConfigKeepsPrevious(t *testing.T) {
 	s, path := loadStore(t)
 
 	// JSON correct, mais le forward n'a pas de port local
-	writeFile(t, path, `{"forwards": [{"uuid": "1", "name": "x", "target": "svc/x", "remote-port": 80}]}`)
+	writeFile(
+		t,
+		path,
+		`{"forwards": [{"uuid": "1", "name": "x", "target": "svc/x", "remote-port": 80}]}`,
+	)
 	err := s.Load()
 	if err == nil {
 		t.Fatal("Load: got nil error, want a validation error")

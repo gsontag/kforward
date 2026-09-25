@@ -142,12 +142,32 @@ func TestForwardValidate(t *testing.T) {
 		{"sans nom", func(f *Forward) { f.Name = "  " }, "name is required"},
 		{"port local à 0", func(f *Forward) { f.LocalPort = 0 }, "local-port is required"},
 		{"sans cible", func(f *Forward) { f.Target = "" }, "target is required"},
-		{"port distant absent", func(f *Forward) { f.RemotePort = intstr.IntOrString{} }, "between 1 and 65535"},
-		{"port distant trop grand", func(f *Forward) { f.RemotePort = intstr.FromInt32(70000) }, "between 1 and 65535"},
+		{
+			"port distant absent",
+			func(f *Forward) { f.RemotePort = intstr.IntOrString{} },
+			"between 1 and 65535",
+		},
+		{
+			"port distant trop grand",
+			func(f *Forward) { f.RemotePort = intstr.FromInt32(70000) },
+			"between 1 and 65535",
+		},
 		{"port nommé", func(f *Forward) { f.RemotePort = intstr.FromString("http-web") }, ""},
-		{"port nommé en majuscules", func(f *Forward) { f.RemotePort = intstr.FromString("HTTP") }, "remote-port:"},
-		{"port nommé trop long", func(f *Forward) { f.RemotePort = intstr.FromString("un-nom-bien-trop-long") }, "remote-port:"},
-		{"port nommé vide", func(f *Forward) { f.RemotePort = intstr.FromString("") }, "remote-port:"},
+		{
+			"port nommé en majuscules",
+			func(f *Forward) { f.RemotePort = intstr.FromString("HTTP") },
+			"remote-port:",
+		},
+		{
+			"port nommé trop long",
+			func(f *Forward) { f.RemotePort = intstr.FromString("un-nom-bien-trop-long") },
+			"remote-port:",
+		},
+		{
+			"port nommé vide",
+			func(f *Forward) { f.RemotePort = intstr.FromString("") },
+			"remote-port:",
+		},
 		{"adresse localhost", func(f *Forward) { f.Address = "localhost" }, ""},
 		{"adresse 0.0.0.0", func(f *Forward) { f.Address = "0.0.0.0" }, ""},
 		{"adresse IPv6", func(f *Forward) { f.Address = "::1" }, ""},
@@ -191,7 +211,14 @@ func TestConfigValidate(t *testing.T) {
 		},
 		{
 			"uuid vide",
-			[]Forward{{Name: "grafana", Target: "svc/grafana", LocalPort: 3000, RemotePort: intstr.FromInt32(80)}},
+			[]Forward{
+				{
+					Name:       "grafana",
+					Target:     "svc/grafana",
+					LocalPort:  3000,
+					RemotePort: intstr.FromInt32(80),
+				},
+			},
 			[]string{"forward #1 (grafana): uuid is required"},
 		},
 		{
