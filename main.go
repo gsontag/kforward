@@ -11,9 +11,17 @@ import (
 
 func main() {
 	check := flag.Bool("check", false, "check the configuration against the kubeconfig and exit")
+	forward := flag.String(
+		"forward",
+		"",
+		"run the named forward in the foreground until interrupted",
+	)
 	flag.Parse()
-	if *check {
+	switch {
+	case *check:
 		os.Exit(runCheck())
+	case *forward != "":
+		os.Exit(runForward(*forward))
 	}
 	app := gtk.NewApplication("fr.gsontag.kforward", gio.ApplicationDefaultFlags)
 	app.ConnectActivate(func() { activate(app) })
