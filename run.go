@@ -8,11 +8,11 @@ import (
 	"syscall"
 
 	"gsontag.fr/kforward/internal/config"
-	"gsontag.fr/kforward/internal/kube"
+	"gsontag.fr/kforward/internal/forward"
 )
 
-// runForward runs the named forward in the foreground until interrupted.
-// It returns the process exit code.
+// runForward runs the named forward in the foreground, reconnecting it when
+// it drops, until interrupted. It returns the process exit code.
 func runForward(name string) int {
 	_, store, client, err := loadAll()
 	if err != nil {
@@ -25,34 +25,39 @@ func runForward(name string) int {
 		return 1
 	}
 
-	// Cancelled by Ctrl-C or kill: stops the resolution as well as the forward
+	connector, err := forward.NewClusterConnector(client, f)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%s: %v\n", f.Name, err)
+		return 1
+	}
+
+	// Cancelled by Ctrl-C or kill: stops the forward and its reconnections
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	resolveCtx, cancel := context.WithTimeout(ctx, resolveTimeout)
-	cluster, endpoint, err := resolveForward(resolveCtx, client, f)
-	cancel()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s: %v\n", f.Name, err)
-		return 1
-	}
-
-	err = kube.Forward(ctx, cluster, endpoint, f.BindAddress(), f.LocalPort, func() {
-		fmt.Printf(
-			"%s: %s:%d → pod %s/%s:%d (Ctrl-C to stop)\n",
-			f.Name,
-			f.BindAddress(),
-			f.LocalPort,
-			endpoint.Namespace,
-			endpoint.Pod,
-			endpoint.Port,
-		)
+	var final forward.Status
+	forward.Run(ctx, connector, forward.DefaultPolicy, func(s forward.Status) {
+		final = s
+		switch {
+		case s.State == forward.Active:
+			fmt.Printf(
+				"%s: active, %s:%d → pod %s/%s:%d\n",
+				f.Name,
+				f.BindAddress(),
+				f.LocalPort,
+				s.Endpoint.Namespace,
+				s.Endpoint.Pod,
+				s.Endpoint.Port,
+			)
+		case s.Err != nil:
+			fmt.Printf("%s: %s (%v)\n", f.Name, s.State, s.Err)
+		default:
+			fmt.Printf("%s: %s\n", f.Name, s.State)
+		}
 	})
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s: %v\n", f.Name, err)
+	if final.State == forward.Failed {
 		return 1
 	}
-	fmt.Printf("%s: stopped\n", f.Name)
 	return 0
 }
 

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"time"
 
 	"gsontag.fr/kforward/internal/config"
@@ -27,26 +26,4 @@ func loadAll() (string, *config.Store, *kube.Client, error) {
 		return "", nil, nil, err
 	}
 	return path, store, client, nil
-}
-
-// resolveForward finds the cluster, pod and port a configured forward points to.
-func resolveForward(
-	ctx context.Context,
-	client *kube.Client,
-	f config.Forward,
-) (*kube.Cluster, kube.Endpoint, error) {
-	cluster, err := client.Cluster(f.Context)
-	if err != nil {
-		return nil, kube.Endpoint{}, err
-	}
-	target, err := kube.ParseTarget(f.Target)
-	if err != nil {
-		return nil, kube.Endpoint{}, err
-	}
-	namespace := f.Namespace
-	if namespace == "" {
-		namespace = cluster.Namespace
-	}
-	endpoint, err := kube.Resolve(ctx, cluster.Clientset, namespace, target, f.RemotePort)
-	return cluster, endpoint, err
 }

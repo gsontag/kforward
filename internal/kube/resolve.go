@@ -88,6 +88,9 @@ func podSelector(
 		}
 		selector, err := metav1.LabelSelectorAsSelector(s.Spec.Selector)
 		return selector, nil, err
+	case KindPod:
+		// Resolve gets a pod directly: reaching here is a programmatic error
+		return nil, nil, errors.New("a pod target has no selector")
 	default:
 		return nil, nil, fmt.Errorf("unsupported kind %q", target.Kind)
 	}

@@ -26,6 +26,7 @@ linters:
     - unparam
     - unused
     - usetesting
+    - exhaustive
   settings:
     revive:
       # Sans cette option, la liste « rules » remplace les règles par défaut

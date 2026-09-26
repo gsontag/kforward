@@ -1,11 +1,16 @@
 package kube
 
 import (
+	"errors"
 	"fmt"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
+
+// ErrPortNotFound means the configured remote port matches no port of the
+// service or of the pod: a configuration error that retrying cannot fix.
+var ErrPortNotFound = errors.New("port not found")
 
 // podPort translates the configured remote port into a container port of pod.
 // For a service, remote designates a service port, by number or by name.
@@ -43,7 +48,11 @@ func servicePort(svc *corev1.Service, remote intstr.IntOrString) (corev1.Service
 			return sp, nil
 		}
 	}
-	return corev1.ServicePort{}, fmt.Errorf("no TCP service port %s", remote.String())
+	return corev1.ServicePort{}, fmt.Errorf(
+		"no TCP service port %s: %w",
+		remote.String(),
+		ErrPortNotFound,
+	)
 }
 
 func containerPort(pod *corev1.Pod, name string) (int32, error) {
@@ -54,5 +63,10 @@ func containerPort(pod *corev1.Pod, name string) (int32, error) {
 			}
 		}
 	}
-	return 0, fmt.Errorf("pod %s has no container port named %q", pod.Name, name)
+	return 0, fmt.Errorf(
+		"pod %s has no container port named %q: %w",
+		pod.Name,
+		name,
+		ErrPortNotFound,
+	)
 }

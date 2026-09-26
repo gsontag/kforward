@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"gsontag.fr/kforward/internal/config"
+	"gsontag.fr/kforward/internal/forward"
 	"gsontag.fr/kforward/internal/kube"
 )
 
@@ -36,17 +37,22 @@ func runCheck() int {
 
 // checkForward resolves the pod and port a forward would connect to.
 func checkForward(client *kube.Client, f config.Forward) (string, error) {
+	connector, err := forward.NewClusterConnector(client, f)
+	if err != nil {
+		return "", err
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), resolveTimeout)
 	defer cancel()
 
-	cluster, endpoint, err := resolveForward(ctx, client, f)
+	endpoint, err := connector.Resolve(ctx)
 	if err != nil {
 		return "", err
 	}
 
 	return fmt.Sprintf(
 		"[%s] %s/%s → pod %s:%d, listening on %s:%d",
-		cluster.Context,
+		connector.Context(),
 		endpoint.Namespace,
 		f.Target,
 		endpoint.Pod,
