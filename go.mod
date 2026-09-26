@@ -5,6 +5,7 @@ go 1.27.1
 require (
 	github.com/adrg/xdg v0.5.3
 	github.com/diamondburned/gotk4/pkg v0.4.1
+	k8s.io/api v0.37.1
 	k8s.io/apimachinery v0.37.1
 	k8s.io/client-go v0.37.1
 )
