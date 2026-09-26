@@ -7,6 +7,7 @@ import (
 	"maps"
 	"slices"
 
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/clientcmd/api"
@@ -17,8 +18,10 @@ type Cluster struct {
 	Context string
 	// Namespace is the default namespace of the context, "default" when unset.
 	Namespace string
-	// Config is shared between callers and must not be modified
+	// Config is shared between callers and must not be modified.
 	Config *rest.Config
+	// Clientset talks to the API server of the context.
+	Clientset kubernetes.Interface
 }
 
 type contextEntry struct {
@@ -71,7 +74,18 @@ func resolveContext(
 	if err != nil {
 		return contextEntry{err: fmt.Errorf("context %q: %w", name, err)}
 	}
-	return contextEntry{cluster: &Cluster{Context: name, Namespace: namespace, Config: restConfig}}
+	clientset, err := kubernetes.NewForConfig(restConfig)
+	if err != nil {
+		return contextEntry{err: fmt.Errorf("context %q: %w", name, err)}
+	}
+	return contextEntry{
+		cluster: &Cluster{
+			Context:   name,
+			Namespace: namespace,
+			Config:    restConfig,
+			Clientset: clientset,
+		},
+	}
 }
 
 // Contexts returns the names of the kubeconfig contexts, sorted.
