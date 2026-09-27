@@ -6,6 +6,11 @@ GOVET=$(GOCMD) vet
 BINARY_NAME=kforward
 VERSION?=0.0.1
 
+IT_CLUSTER?=kforward-it
+IT_NODE_IMAGE?=kindest/node:v1.34.0
+IT_APP_IMAGE?=busybox:stable
+IT_KUBECONFIG?=$(CURDIR)/out/it-kubeconfig
+
 GREEN		:= $(shell tput -Txterm setaf 2)
 YELLOW	:= $(shell tput -Txterm setaf 3)
 WHITE		:= $(shell tput -Txterm setaf 7)
@@ -74,7 +79,24 @@ coverage: test ## displays test coverage report in html code
 		$(GOCMD) tool cover -html=coverage.out
 
 .PHONY: install-tools check-quality lint lint-fix lint-config vet fmt fmt-check tidy tidy-check \
-	clean build test coverage all help
+	clean build test coverage all help it-cluster it-clean it
+
+## Integration tests
+it-cluster: ## creates the kind cluster of the integration tests, if needed
+		@if ! kind get clusters | grep -qx "$(IT_CLUSTER)"; then \
+			kind create cluster --name "$(IT_CLUSTER)" --image "$(IT_NODE_IMAGE)" \
+				--kubeconfig "$(IT_KUBECONFIG)" --wait 60s; \
+		fi
+		@mkdir -p "$(dir $(IT_KUBECONFIG))"
+		kind get kubeconfig --name "$(IT_CLUSTER)" > "$(IT_KUBECONFIG)"
+		kind load docker-image "$(IT_APP_IMAGE)" --name "$(IT_CLUSTER)"
+
+it-clean: ## deletes the kind cluster of the integration tests
+		kind delete cluster --name "$(IT_CLUSTER)"
+		rm -f "$(IT_KUBECONFIG)"
+
+it: it-cluster ## runs the integration tests against the kind cluster
+		KFORWARD_IT_KUBECONFIG="$(IT_KUBECONFIG)" KFORWARD_IT_IMAGE="$(IT_APP_IMAGE)" $(GOCMD) test -tags integration -race -count=1 -timeout 5m ./internal/...
 
 ## All
 all: check-quality build test ## runs quality checks, build and tests
