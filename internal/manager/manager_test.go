@@ -275,12 +275,13 @@ func TestReload(t *testing.T) {
 		m.Load([]config.Forward{added, movedIdle, movedRunning, renamed})
 		settle()
 
-		// Order of the new configuration; AutoStart only applies to the first load
-		check(t, "states", states(m), "added=stopped idle=stopped moved=active renamed=active")
+		// Canonical order: the grouped forward first, then by name; AutoStart
+		// only applies to the first load
+		check(t, "states", states(m), "renamed=active added=stopped idle=stopped moved=active")
 		check(t, "renamed kept its connector", c.builds("renamed"), 1)
 		check(t, "moved restarted", c.builds("moved"), 2)
 		check(t, "idle not started", c.builds("idle"), 0)
-		check(t, "new name visible", m.Snapshot()[3].Forward.Name, "Grafana")
+		check(t, "new name visible", m.Snapshot()[0].Forward.Name, "Grafana")
 		check(t, "removed port released", c.holds(4), false)
 	})
 }
@@ -364,4 +365,16 @@ func check[T comparable](t *testing.T, name string, got, want T) {
 	if got != want {
 		t.Errorf("%s: got %v, want %v", name, got, want)
 	}
+}
+
+func TestLoadSortsWithoutTouchingTheInput(t *testing.T) {
+	synctest.Test(t, func(t *testing.T) {
+		m, _, _ := newManager(t)
+		input := []config.Forward{fwd("c", 3), fwd("a", 1), fwd("b", 2)}
+
+		m.Load(input)
+
+		check(t, "snapshot order", states(m), "a=stopped b=stopped c=stopped")
+		check(t, "input untouched", input[0].UUID+input[1].UUID+input[2].UUID, "cab")
+	})
 }

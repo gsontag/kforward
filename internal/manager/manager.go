@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"sync"
 
 	"gsontag.fr/kforward/internal/config"
@@ -68,6 +69,9 @@ func New(newConnector ConnectorFactory, policy forward.Policy, onChange func()) 
 // unchanged keep running; changed ones restart; removed ones stop. On the
 // first load only, the forwards marked AutoStart start.
 func (m *Manager) Load(forwards []config.Forward) {
+	// Canonical order whatever the order of the file
+	forwards = slices.Clone(forwards)
+	config.Sort(forwards)
 	m.mu.Lock()
 	previous := make(map[string]*entry, len(m.entries))
 	for _, e := range m.entries {
