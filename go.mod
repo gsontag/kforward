@@ -3,8 +3,10 @@ module gsontag.fr/kforward
 go 1.27.1
 
 require (
+	github.com/BurntSushi/toml v1.6.0
 	github.com/adrg/xdg v0.5.3
 	github.com/diamondburned/gotk4/pkg v0.4.1
+	github.com/nicksnyder/go-i18n/v2 v2.6.1
 	golang.org/x/text v0.40.0
 	k8s.io/api v0.37.1
 	k8s.io/apimachinery v0.37.1

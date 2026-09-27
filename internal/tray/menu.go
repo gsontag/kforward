@@ -3,9 +3,8 @@
 package tray
 
 import (
-	"fmt"
-
 	"gsontag.fr/kforward/internal/forward"
+	"gsontag.fr/kforward/internal/locale"
 	"gsontag.fr/kforward/internal/manager"
 )
 
@@ -53,28 +52,30 @@ type Item struct {
 	Children []Item
 }
 
-const ungrouped = "Divers"
-
 // Build returns the menu showing entries; problem, when not empty, is a
 // configuration error displayed at the top.
-func Build(entries []manager.Entry, problem string) []Item {
+func Build(entries []manager.Entry, problem string, tr *locale.Translator) []Item {
 	var items []Item
 	if problem != "" {
 		items = append(
 			items,
-			Item{Kind: Label, Text: "⚠ " + problem, Disabled: true},
+			Item{
+				Kind:     Label,
+				Text:     tr.T(msgProblem, map[string]any{"Problem": problem}),
+				Disabled: true,
+			},
 			Item{Kind: Separator},
 		)
 	}
 	if len(entries) == 0 && problem == "" {
 		items = append(
 			items,
-			Item{Kind: Label, Text: "Aucun forward configuré", Disabled: true},
+			Item{Kind: Label, Text: tr.T(msgEmpty, nil), Disabled: true},
 			Item{Kind: Separator},
 		)
 	}
 
-	items = append(items, forwardItems(entries)...)
+	items = append(items, forwardItems(entries, tr)...)
 	if len(entries) > 0 {
 		items = append(items, Item{Kind: Separator})
 	}
@@ -82,21 +83,21 @@ func Build(entries []manager.Entry, problem string) []Item {
 	if urls := urlItems(entries); len(urls) > 0 {
 		items = append(
 			items,
-			Item{Kind: Submenu, Text: "Ouvrir dans le navigateur", Children: urls},
+			Item{Kind: Submenu, Text: tr.T(msgOpen, nil), Children: urls},
 		)
 	}
 	items = append(
 		items,
 		Item{
 			Kind:     Button,
-			Text:     "Tout couper",
+			Text:     tr.T(msgStopAll, nil),
 			Disabled: !anyRunning(entries),
 			Action:   Action{Op: StopAll},
 		},
 		Item{Kind: Separator},
-		Item{Kind: Button, Text: "Editer la configuration...", Action: Action{Op: EditConfig}},
+		Item{Kind: Button, Text: tr.T(msgEdit, nil), Action: Action{Op: EditConfig}},
 		Item{Kind: Separator},
-		Item{Kind: Button, Text: "Quitter", Action: Action{Op: Quit}},
+		Item{Kind: Button, Text: tr.T(msgQuit, nil), Action: Action{Op: Quit}},
 	)
 	return items
 }
@@ -104,7 +105,7 @@ func Build(entries []manager.Entry, problem string) []Item {
 // forwardItems lists the switches, under a header per group when the
 // configuration uses groups; entries come sorted by the manager, so each
 // group is contiguous.
-func forwardItems(entries []manager.Entry) []Item {
+func forwardItems(entries []manager.Entry, tr *locale.Translator) []Item {
 	grouped := false
 	for _, e := range entries {
 		if e.Forward.Group != "" {
@@ -121,33 +122,36 @@ func forwardItems(entries []manager.Entry) []Item {
 				items = append(items, Item{Kind: Separator})
 			}
 			if group == "" {
-				group = ungrouped
+				group = tr.T(msgOther, nil)
 			}
 			items = append(items, Item{Kind: Label, Text: group, Disabled: true})
 		}
-		items = append(items, toggleItem(e))
+		items = append(items, toggleItem(e, tr))
 	}
 	return items
 }
 
-func toggleItem(e manager.Entry) Item {
+func toggleItem(e manager.Entry, tr *locale.Translator) Item {
 	f, s := e.Forward, e.Status
-	text := fmt.Sprintf("%s  :%d", f.Name, f.LocalPort)
+	data := map[string]any{"Name": f.Name, "Port": f.LocalPort, "Target": f.Target}
+
+	msg := msgForward
 	switch s.State {
 	case forward.Connecting:
-		text += " - connexion..."
+		msg = msgConnecting
 	case forward.Failed:
-		text += " - échec"
+		msg = msgFailed
 	case forward.Stopped, forward.Active:
 	}
 
-	tooltip := fmt.Sprintf("%s → localhost:%d", f.Target, f.LocalPort)
+	tooltip := tr.T(msgTarget, data)
 	if s.Err != nil && s.State != forward.Active {
+		// Technical and searchable: errors stay in English
 		tooltip = s.Err.Error()
 	}
 	return Item{
 		Kind:    Toggle,
-		Text:    text,
+		Text:    tr.T(msg, data),
 		Tooltip: tooltip,
 		Checked: s.State == forward.Connecting || s.State == forward.Active,
 		Action:  Action{Op: ToggleForward, UUID: f.UUID},
@@ -202,4 +206,9 @@ func Summarize(entries []manager.Entry) Summary {
 		}
 	}
 	return s
+}
+
+// Tooltip returns the text of the icon tooltip.
+func Tooltip(s Summary, tr *locale.Translator) string {
+	return tr.N(msgActive, s.Active, nil)
 }

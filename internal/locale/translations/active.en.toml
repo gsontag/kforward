@@ -1,0 +1,19 @@
+TrayEditConfig = "Edit configuration…"
+TrayEmpty = "No forward configured"
+TrayForward = "{{.Name}}  :{{.Port}}"
+TrayForwardConnecting = "{{.Name}}  :{{.Port}} — connecting…"
+TrayForwardFailed = "{{.Name}}  :{{.Port}} — failed"
+TrayForwardTarget = "{{.Target}} ➔ localhost:{{.Port}}"
+TrayOpenInBrowser = "Open in browser"
+TrayProblem = "⚠️ {{.Problem}}"
+TrayQuit = "Quit"
+TrayStopAll = "Stop all"
+
+[TrayActiveCount]
+description = "Tooltip of the icon"
+one = "{{.Count}} active forward"
+other = "{{.Count}} active forwards"
+
+[TrayUngrouped]
+description = "Header of the forwards without group"
+other = "Other"

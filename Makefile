@@ -11,6 +11,9 @@ IT_NODE_IMAGE?=kindest/node:v1.34.0
 IT_APP_IMAGE?=busybox:stable
 IT_KUBECONFIG?=$(CURDIR)/out/it-kubeconfig
 
+I18N_DIR=internal/locale/translations
+I18N_FLAGS=-sourceLanguage en -outdir $(I18N_DIR) -format toml
+
 GREEN		:= $(shell tput -Txterm setaf 2)
 YELLOW	:= $(shell tput -Txterm setaf 3)
 WHITE		:= $(shell tput -Txterm setaf 7)
@@ -21,6 +24,7 @@ RESET		:= $(shell tput -Txterm sgr0)
 # N'installe que si la commande manque ou est trop ancienne : une version
 # installée autrement (brew…) est conservée
 install-tools: ## installs golangci-lint if missing or older than GOLANGCI_MIN_VERSION
+		$(GOCMD) install github.com/nicksnyder/go-i18n/v2/goi18n@v2.6.1
 		@current=$$($(LINTCMD) version --short 2>/dev/null); \
 		if [ -n "$$current" ] && printf '%s\n%s\n' "$(GOLANGCI_MIN_VERSION)" "$$current" | sort -V -C; then \
 			echo "$(LINTCMD) $$current found (>= $(GOLANGCI_MIN_VERSION))"; \
@@ -61,6 +65,16 @@ tidy: ## runs tidy to fix go.mod dependencies
 
 tidy-check: ## fails if go.mod/go.sum are not tidy
 		$(GOCMD) mod tidy -diff
+
+## Translations
+i18n-extract: ## collects the English texts, lists what is left to translate in translate.*.toml
+		goi18n extract $(I18N_FLAGS) ./internal
+		goi18n merge $(I18N_FLAGS) $(I18N_DIR)/active.*.toml
+
+i18n-merge: ## moves the translated texts of translate.*.toml into active.*.toml
+		goi18n merge $(I18N_FLAGS) $(I18N_DIR)/active.*.toml $(I18N_DIR)/translate.*.toml
+		rm -f $(I18N_DIR)/translate.*.toml
+		goi18n merge $(I18N_FLAGS) $(I18N_DIR)/active.*.toml
 
 ## Build
 clean: ## cleans binary and other generated files

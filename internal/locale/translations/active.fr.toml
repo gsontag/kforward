@@ -1,0 +1,51 @@
+[TrayActiveCount]
+description = "Tooltip of the icon"
+hash = "sha1-c3fa30e09c8b27f0f1d07173c2ab0c51755e2c14"
+many = "{{.Count}} forwards actifs"
+one = "{{.Count}} forward actif"
+other = "{{.Count}} forwards actifs"
+
+[TrayEditConfig]
+hash = "sha1-774e3aa3816d14d98796637aff36dae6f6953ab2"
+other = "Modifier la configuration…"
+
+[TrayEmpty]
+hash = "sha1-b91516c14560523d4cf6e6935fb81d118a41a988"
+other = "Aucun forward configuré"
+
+[TrayForward]
+hash = "sha1-0f2ab8d7737e9de3d8652d71f36932a0e260a017"
+other = "{{.Name}}  :{{.Port}}"
+
+[TrayForwardConnecting]
+hash = "sha1-25ca638349f67cf221bf1978e7775ab9b4e11e4b"
+other = "{{.Name}}  :{{.Port}} — connexion…"
+
+[TrayForwardFailed]
+hash = "sha1-3b361fbf8075b701b8df57aecfec04075a6fafec"
+other = "{{.Name}}  :{{.Port}} — erreur"
+
+[TrayForwardTarget]
+hash = "sha1-2af51e6b4448e582211d7e2da826f15f0142efca"
+other = "{{.Target}} ➔ localhost:{{.Port}}"
+
+[TrayOpenInBrowser]
+hash = "sha1-052269b2c823a67547b0bb8b6117c8df28d9e78e"
+other = "Ouvrir dans le navigateur"
+
+[TrayProblem]
+hash = "sha1-9e6eb50bacd950a22d3afc83f99086a57b3e0701"
+other = "⚠️ {{.Problem}}"
+
+[TrayQuit]
+hash = "sha1-1a2285d8881f226e13430515a9dd2b9fb6294200"
+other = "Quitter"
+
+[TrayStopAll]
+hash = "sha1-a3a30f090fd8510e2cddd14577bc69de5135afe6"
+other = "Tout arrêter"
+
+[TrayUngrouped]
+description = "Header of the forwards without group"
+hash = "sha1-bf06d85fea44e12ce15a32137bc0174bdfde59fd"
+other = "Autres"
