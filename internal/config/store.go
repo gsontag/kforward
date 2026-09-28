@@ -10,9 +10,13 @@ import (
 	"path/filepath"
 	"slices"
 	"sync"
+	"uuid"
 
 	"github.com/adrg/xdg"
 )
+
+// ErrNotFound is returned for a UUID that is not in the configuration.
+var ErrNotFound = errors.New("forward not found")
 
 // Store holds the configuration in memory and persists it to a JSON file.
 // It is safe for concurrent use.
@@ -102,11 +106,60 @@ func (s *Store) SetKubeconfig(path string) error {
 
 	next := *s.config
 	next.Kubeconfig = path
-	if err := writeConfig(s.path, &next); err != nil {
+	return s.commitLocked(&next)
+}
+
+// commitLocked writes next, in canonical order, and makes it the current
+// configuration once written; s.mu must be held.
+func (s *Store) commitLocked(next *Config) error {
+	// A copy of Config shares its slice with the current one: sort a copy
+	next.Forwards = slices.Clone(next.Forwards)
+	Sort(next.Forwards)
+	if err := writeConfig(s.path, next); err != nil {
 		return err
 	}
-	s.config = &next
+	s.config = next
 	return nil
+}
+
+// SaveForward adds f, or replaces the forward with the same UUID, and saves
+// the file atomically. A forward without UUID is new: it gets one, and the
+// saved forward is returned. On error, nothing is modified.
+func (s *Store) SaveForward(f Forward) (Forward, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if f.UUID == "" {
+		f.UUID = uuid.New().String()
+	}
+	next := *s.config
+	next.Forwards = slices.Clone(s.config.Forwards)
+	if i := slices.IndexFunc(next.Forwards, func(e Forward) bool { return e.UUID == f.UUID }); i >= 0 {
+		next.Forwards[i] = f
+	} else {
+		next.Forwards = append(next.Forwards, f)
+	}
+	if err := s.commitLocked(&next); err != nil {
+		return Forward{}, err
+	}
+	return f, nil
+}
+
+// DeleteForward removes the forward with the given UUID and saves the file
+// atomically. On error, nothing is modified.
+func (s *Store) DeleteForward(id string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	next := *s.config
+	next.Forwards = slices.DeleteFunc(
+		slices.Clone(s.config.Forwards),
+		func(e Forward) bool { return e.UUID == id },
+	)
+	if len(next.Forwards) == len(s.config.Forwards) {
+		return fmt.Errorf("%w: %s", ErrNotFound, id)
+	}
+	return s.commitLocked(&next)
 }
 
 func writeConfig(path string, cfg *Config) error {
