@@ -86,8 +86,11 @@ build: ## Build binary
 		$(GOCMD) build -o out/$(BINARY_NAME) .
 
 ## Test
+# GTK packages build for minutes with -race: kept out of the unit tests
+TEST_PKGS=$(shell $(GOCMD) list ./internal/... | grep -v /internal/gui)
+
 test: ## runs tests and generates coverage report
-		$(GOCMD) test -race ./internal/... -coverprofile=coverage.out
+		$(GOCMD) test -race -timeout 2m $(TEST_PKGS) -coverprofile=coverage.out
 
 coverage: test ## displays test coverage report in html code
 		$(GOCMD) tool cover -html=coverage.out

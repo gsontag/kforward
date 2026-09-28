@@ -12,6 +12,7 @@ import (
 
 	"gsontag.fr/kforward/internal/config"
 	"gsontag.fr/kforward/internal/forward"
+	"gsontag.fr/kforward/internal/gui"
 	"gsontag.fr/kforward/internal/kube"
 	"gsontag.fr/kforward/internal/locale"
 	"gsontag.fr/kforward/internal/manager"
@@ -28,6 +29,7 @@ type app struct {
 	manager *manager.Manager
 	tray    *tray.Tray
 	endTray func()
+	window  *gui.Window
 }
 
 // post runs f on the GTK main loop: the only thread touching the UI.
@@ -36,8 +38,9 @@ func post(f func()) {
 }
 
 func (a *app) activate() {
-	// A second launch activates the running instance: nothing to redo
+	// A second launch activates the running instance: show its window
 	if a.started {
+		a.window.Show()
 		return
 	}
 	a.started = true
@@ -47,8 +50,13 @@ func (a *app) activate() {
 	forwards, client, problem := a.load()
 	a.problem = problem
 
-	a.tray = tray.New(locale.FromEnvironment(), a.snapshot, post, a.handle)
-	a.manager = manager.New(connectorFactory(client), forward.DefaultPolicy, a.tray.Refresh)
+	tr := locale.FromEnvironment()
+	a.tray = tray.New(tr, a.trayState, post, a.handle)
+	a.window = gui.New(a.gtk, tr, a.windowState, post, a.toggle)
+	a.manager = manager.New(connectorFactory(client), forward.DefaultPolicy, func() {
+		a.tray.Refresh()
+		a.window.Refresh()
+	})
 	a.manager.Load(forwards)
 
 	start, end := systray.RunWithExternalLoop(a.tray.Refresh, nil)
@@ -66,21 +74,21 @@ func (a *app) shutdown() {
 }
 
 // load reads the configuration and the kubeconfig. Their errors do not stop
-// the application: they are shown at the top of the menu.
+// the application: they are shown at the top of the menu and in the window.
 func (a *app) load() ([]config.Forward, *kube.Client, string) {
 	path, err := config.DefaultPath()
 	if err != nil {
-		return nil, nil, firstLine(err)
+		return nil, nil, err.Error()
 	}
 	a.path = path
 
 	store := config.NewStore(path)
 	if err := store.Load(); err != nil {
-		return nil, nil, firstLine(err)
+		return nil, nil, err.Error()
 	}
 	client, err := kube.NewClient(store.Kubeconfig())
 	if err != nil {
-		return store.Forwards(), nil, firstLine(err)
+		return store.Forwards(), nil, err.Error()
 	}
 	return store.Forwards(), client, ""
 }
@@ -101,10 +109,6 @@ func connectorFactory(client *kube.Client) manager.ConnectorFactory {
 	}
 }
 
-func (a *app) snapshot() ([]manager.Entry, string) {
-	return a.manager.Snapshot(), a.problem
-}
-
 func (a *app) handle(it tray.Item) {
 	var err error
 	switch it.Action.Op {
@@ -122,16 +126,34 @@ func (a *app) handle(it tray.Item) {
 		err = gio.AppInfoLaunchDefaultForURI(gio.NewFileForPath(a.path).URI(), nil)
 	case tray.Quit:
 		a.gtk.Quit()
-	case tray.None:
 	case tray.ShowWindow:
+		a.window.Show()
+	case tray.None:
 	}
 	if err != nil {
 		log.Printf("%s: %v", it.Text, err)
 	}
 }
 
-// firstLine keeps a menu item on one line: validation errors span several.
-func firstLine(err error) string {
-	line, _, _ := strings.Cut(err.Error(), "\n")
-	return line
+func (a *app) trayState() ([]manager.Entry, string) {
+	// A menu item has a single line: the first one tells what is wrong
+	line, _, _ := strings.Cut(a.problem, "\n")
+	return a.manager.Snapshot(), line
+}
+
+func (a *app) windowState() ([]manager.Entry, string) {
+	return a.manager.Snapshot(), a.problem
+}
+
+// toggle applies a switch of the window.
+func (a *app) toggle(uuid string, on bool) {
+	var err error
+	if on {
+		err = a.manager.Start(uuid)
+	} else {
+		err = a.manager.Stop(uuid)
+	}
+	if err != nil {
+		log.Printf("%s: %v", uuid, err)
+	}
 }

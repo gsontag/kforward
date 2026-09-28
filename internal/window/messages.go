@@ -2,10 +2,8 @@ package window
 
 import "github.com/nicksnyder/go-i18n/v2/i18n"
 
-// The English texts of the window; see internal/tray/messages.go.
+// The English texts of the window rows; see internal/tray/messages.go.
 var (
-	msgTitle     = &i18n.Message{ID: "WindowTitle", Other: "Kube Forwarder"}
-	msgEmpty     = &i18n.Message{ID: "WindowEmpty", Other: "No forward configured"}
 	msgUngrouped = &i18n.Message{
 		ID:          "WindowUngrouped",
 		Description: "Header of the forwards without group",
