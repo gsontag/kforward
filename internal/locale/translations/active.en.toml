@@ -1,3 +1,8 @@
+EditorAddressInvalid = "An IP address, such as 127.0.0.1, or localhost"
+EditorLocalPortInvalid = "A port number, from 1 to 65535"
+EditorNameRequired = "A name is required"
+EditorRemotePortInvalid = "A port number, or a port name made of lowercase letters, digits and hyphens"
+EditorURLInvalid = "An address starting with http:// or https://"
 TrayEditConfig = "Edit configuration…"
 TrayEmpty = "No forward configured"
 TrayForward = "{{.Name}}  :{{.Port}}"
@@ -16,6 +21,10 @@ WindowStateFailed = "Failed"
 WindowStateStopped = "Stopped"
 WindowTarget = "{{.Context}} · {{.Namespace}}/{{.Target}}"
 WindowTitle = "Kube Forwarder"
+
+[EditorTargetInvalid]
+description = "pod, svc, deploy and sts are kubectl kinds: not to translate"
+other = "Expected KIND/NAME, such as svc/grafana: KIND is pod, svc, deploy or sts"
 
 [TrayActiveCount]
 description = "Tooltip of the icon"

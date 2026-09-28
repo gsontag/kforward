@@ -1,3 +1,28 @@
+[EditorAddressInvalid]
+hash = "sha1-4a9e094bd1a36999f6219cb0d4e63c1181ff5743"
+other = "Une adresse IP, comme 127.0.0.1, ou localhost"
+
+[EditorLocalPortInvalid]
+hash = "sha1-3822a36964727547ddde611f2bfe2b84fa0b4fc1"
+other = "Un numéro de port, entre 1 et 65535"
+
+[EditorNameRequired]
+hash = "sha1-f53c62e0c100ae59ef6b8bb450a934b39cd47cf2"
+other = "Un nom est obligatoire"
+
+[EditorRemotePortInvalid]
+hash = "sha1-7e9d43562ea183729d091c6fcb2f848c3eeece88"
+other = "Un numéro de port, ou un nom de port composé de lettres minuscules, de chiffres et de tirets"
+
+[EditorTargetInvalid]
+description = "pod, svc, deploy and sts are kubectl kinds: not to translate"
+hash = "sha1-80762fbb8644ff65e14d80ccdca12bce3773e159"
+other = "KIND/NAME obligatoire, par exemple svc/grafana: KIND est pod, svc, deploy ou sts"
+
+[EditorURLInvalid]
+hash = "sha1-06d5e5bf35005f0926e4f832926a7c0c7d9cd971"
+other = "Une adresse démarrant par http:// ou https://"
+
 [TrayActiveCount]
 description = "Tooltip of the icon"
 hash = "sha1-c3fa30e09c8b27f0f1d07173c2ab0c51755e2c14"
