@@ -4,6 +4,8 @@ package main
 import (
 	"flag"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/diamondburned/gotk4/pkg/gio/v2"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
@@ -23,19 +25,21 @@ func main() {
 	case *forward != "":
 		os.Exit(runForward(*forward))
 	}
-	app := gtk.NewApplication("fr.gsontag.kforward", gio.ApplicationDefaultFlags)
-	app.ConnectActivate(func() { activate(app) })
+	application := gtk.NewApplication("fr.gsontag.kforward", gio.ApplicationDefaultFlags)
+	a := &app{gtk: application}
+	application.ConnectActivate(a.activate)
+	application.ConnectShutdown(a.shutdown)
+
+	// Ctrl-C or kill: quit through GTK, so that shutdown stops the forwards
+	signals := make(chan os.Signal, 1)
+	signal.Notify(signals, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		<-signals
+		post(application.Quit)
+	}()
 
 	// GApplication parses command line too and would reject our options
-	if code := app.Run(append([]string{os.Args[0]}, flag.Args()...)); code > 0 {
+	if code := application.Run(append([]string{os.Args[0]}, flag.Args()...)); code > 0 {
 		os.Exit(code)
 	}
-}
-
-func activate(app *gtk.Application) {
-	window := gtk.NewApplicationWindow(app)
-	window.SetTitle("gotk4 Example")
-	window.SetChild(gtk.NewLabel("Hello from Go!"))
-	window.SetDefaultSize(400, 300)
-	window.SetVisible(true)
 }
