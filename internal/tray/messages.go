@@ -30,4 +30,5 @@ var (
 		ID: "TrayActiveCount", Description: "Tooltip of the icon",
 		One: "{{.Count}} active forward", Other: "{{.Count}} active forwards",
 	}
+	msgShowWindow = &i18n.Message{ID: "TrayShowWindow", Other: "Open window…"}
 )

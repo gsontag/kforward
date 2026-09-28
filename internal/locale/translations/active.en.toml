@@ -7,7 +7,15 @@ TrayForwardTarget = "{{.Target}} ➔ localhost:{{.Port}}"
 TrayOpenInBrowser = "Open in browser"
 TrayProblem = "⚠️ {{.Problem}}"
 TrayQuit = "Quit"
+TrayShowWindow = "Open window…"
 TrayStopAll = "Stop all"
+WindowEmpty = "No forward configured"
+WindowStateActive = "Active on {{.Address}}:{{.Port}}"
+WindowStateConnecting = "Connecting…"
+WindowStateFailed = "Failed"
+WindowStateStopped = "Stopped"
+WindowTarget = "{{.Context}} · {{.Namespace}}/{{.Target}}"
+WindowTitle = "Kube Forwarder"
 
 [TrayActiveCount]
 description = "Tooltip of the icon"
@@ -15,5 +23,14 @@ one = "{{.Count}} active forward"
 other = "{{.Count}} active forwards"
 
 [TrayUngrouped]
+description = "Header of the forwards without group"
+other = "Other"
+
+[WindowStateRetrying]
+description = "Reconnecting after failures"
+one = "Reconnecting, {{.Count}} failure"
+other = "Reconnecting, {{.Count}} failures"
+
+[WindowUngrouped]
 description = "Header of the forwards without group"
 other = "Other"

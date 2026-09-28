@@ -23,7 +23,7 @@ other = "{{.Name}}  :{{.Port}} — connexion…"
 
 [TrayForwardFailed]
 hash = "sha1-3b361fbf8075b701b8df57aecfec04075a6fafec"
-other = "{{.Name}}  :{{.Port}} — erreur"
+other = "{{.Name}}  :{{.Port}} — échec"
 
 [TrayForwardTarget]
 hash = "sha1-2af51e6b4448e582211d7e2da826f15f0142efca"
@@ -41,11 +41,55 @@ other = "⚠️ {{.Problem}}"
 hash = "sha1-1a2285d8881f226e13430515a9dd2b9fb6294200"
 other = "Quitter"
 
+[TrayShowWindow]
+hash = "sha1-497e04479bec48b9607ae4e7ecbd76f433d9a31c"
+other = "Ouvrir la fenêtre…"
+
 [TrayStopAll]
 hash = "sha1-a3a30f090fd8510e2cddd14577bc69de5135afe6"
 other = "Tout arrêter"
 
 [TrayUngrouped]
+description = "Header of the forwards without group"
+hash = "sha1-bf06d85fea44e12ce15a32137bc0174bdfde59fd"
+other = "Autres"
+
+[WindowEmpty]
+hash = "sha1-b91516c14560523d4cf6e6935fb81d118a41a988"
+other = "Pas de forward configuré"
+
+[WindowStateActive]
+hash = "sha1-7832ab3388bbe08c5da0031681d8b2d20c3876f4"
+other = "Actif sur {{.Address}}:{{.Port}}"
+
+[WindowStateConnecting]
+hash = "sha1-fd3e796994266a5384f0a5150ff74b828dc5391f"
+other = "Connexion…"
+
+[WindowStateFailed]
+hash = "sha1-09fef5d8d9a3c86b2523fef60d512606e7fe0003"
+other = "Échec"
+
+[WindowStateRetrying]
+description = "Reconnecting after failures"
+hash = "sha1-c39f87416d8c6bb72382795897f64fdb4caa5922"
+many = "Reconnexion, {{.Count}} échecs"
+one = "Reconnexion, {{.Count}} échec"
+other = "Reconnexion, {{.Count}} échecs"
+
+[WindowStateStopped]
+hash = "sha1-51e9111b87116e60566740d13ba1c1eddb042333"
+other = "Arrêté"
+
+[WindowTarget]
+hash = "sha1-ff482c2c8417d779e826fae076c465f8796c95f8"
+other = "{{.Context}} · {{.Namespace}}/{{.Target}}"
+
+[WindowTitle]
+hash = "sha1-df95b7f4f3280131ce5b2da4ddba82a0fd1933d3"
+other = "Kube Forwarder"
+
+[WindowUngrouped]
 description = "Header of the forwards without group"
 hash = "sha1-bf06d85fea44e12ce15a32137bc0174bdfde59fd"
 other = "Autres"

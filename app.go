@@ -123,6 +123,7 @@ func (a *app) handle(it tray.Item) {
 	case tray.Quit:
 		a.gtk.Quit()
 	case tray.None:
+	case tray.ShowWindow:
 	}
 	if err != nil {
 		log.Printf("%s: %v", it.Text, err)

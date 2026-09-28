@@ -225,9 +225,9 @@ func TestBuildFooter(t *testing.T) {
 		ops = append(ops, fmt.Sprintf("%d:%d", it.Kind, it.Action.Op))
 	}
 	got := strings.Join(ops, " ")
-	want := fmt.Sprintf("%d:%d %d:%d %d:%d %d:%d %d:%d %d:%d %d:%d",
+	want := fmt.Sprintf("%d:%d %d:%d %d:%d %d:%d %d:%d %d:%d %d:%d %d:%d",
 		Toggle, ToggleForward, Separator, None, Button, StopAll, Separator, None,
-		Button, EditConfig, Separator, None, Button, Quit)
+		Button, ShowWindow, Button, EditConfig, Separator, None, Button, Quit)
 	check(t, "kinds and operations", got, want)
 }
 
@@ -289,7 +289,8 @@ func TestBuildInFrench(t *testing.T) {
 			texts = append(texts, it.Text)
 		}
 	}
-	want := "db | b  :3000 — connexion… | Autres | a  :3000 — erreur | Tout arrêter | Modifier la configuration… | Quitter"
+	want := "db | b  :3000 — connexion… | Autres | a  :3000 — échec | " +
+		"Tout arrêter | Ouvrir la fenêtre… | Modifier la configuration… | Quitter"
 	check(t, "texts", strings.Join(texts, " | "), want)
 }
 
