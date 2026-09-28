@@ -1,20 +1,21 @@
 package tray
 
 import (
+	"log"
 	"strconv"
 	"strings"
 	"sync/atomic"
 
 	"fyne.io/systray"
 
+	"gsontag.fr/kforward/internal/icon"
 	"gsontag.fr/kforward/internal/locale"
 	"gsontag.fr/kforward/internal/manager"
 )
 
-const (
-	iconIdle = "network-offline-symbolic"
-	iconBusy = "network-transmit-receive-symbolic"
-)
+// iconSize is the side of the drawn icon: large enough for HiDPI panels,
+// which scale it down.
+const iconSize = 64
 
 // Source provides what the tray shows: the forwards and the configuration
 // problem, if any.
@@ -34,11 +35,16 @@ type Tray struct {
 	items []Item
 	shown []*systray.MenuItem
 	shape string
+
+	// icons cache the drawn icons by state; shownIcon avoids sending the
+	// same icon again, which would make the panel reload it
+	icons     map[Summary][]byte
+	shownIcon *Summary
 }
 
 // New returns a tray; handle receives the clicked items, on the UI thread.
 func New(tr *locale.Translator, source Source, post func(func()), handle func(Item)) *Tray {
-	return &Tray{tr: tr, source: source, post: post, handle: handle}
+	return &Tray{tr: tr, source: source, post: post, handle: handle, icons: map[Summary][]byte{}}
 }
 
 // Refresh schedules an update of the menu. It is safe to call from any
@@ -58,11 +64,7 @@ func (t *Tray) render() {
 	items := Build(entries, problem, t.tr)
 
 	summary := Summarize(entries)
-	if summary.Busy {
-		systray.SetIconName(iconBusy)
-	} else {
-		systray.SetIconName(iconIdle)
-	}
+	t.showIcon(summary)
 	systray.SetTooltip(Tooltip(summary, t.tr))
 
 	// Rebuilding a menu the user has open makes it jump: update in place
@@ -85,7 +87,9 @@ func shape(items []Item) string {
 	for _, it := range items {
 		b.WriteString(strconv.Itoa(int(it.Kind)))
 		if it.Kind == Submenu {
-			b.WriteString("(" + shape(it.Children) + ")")
+			b.WriteString("(")
+			b.WriteString(shape(it.Children))
+			b.WriteString(")")
 		}
 		b.WriteByte(',')
 	}
@@ -166,6 +170,23 @@ func (t *Tray) listen(mi *systray.MenuItem, path []int) {
 			}
 		})
 	}
+}
+
+func (t *Tray) showIcon(s Summary) {
+	if t.shownIcon != nil && *t.shownIcon == s {
+		return
+	}
+	png, ok := t.icons[s]
+	if !ok {
+		var err error
+		if png, err = icon.Render(iconSize, s.Active, s.Busy); err != nil {
+			log.Printf("tray icon: %v", err)
+			return
+		}
+		t.icons[s] = png
+	}
+	systray.SetIcon(png)
+	t.shownIcon = &s
 }
 
 func at(items []Item, path []int) (Item, bool) {

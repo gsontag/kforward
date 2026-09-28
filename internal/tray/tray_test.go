@@ -176,3 +176,35 @@ func TestClickReadsTheCurrentItem(t *testing.T) {
 	// Checked comes from the latest render: a click now means stop
 	check(t, "checked at click time", it.Checked, true)
 }
+
+func TestIconDrawnOncePerState(t *testing.T) {
+	var p fakePost
+	summary := Summary{}
+	source := func() ([]manager.Entry, string) {
+		entries := make([]manager.Entry, 0, summary.Active)
+		for range summary.Active {
+			entries = append(entries, manager.Entry{Status: forward.Status{State: forward.Active}})
+		}
+		return entries, ""
+	}
+	tr := New(locale.New(), source, p.post, nil)
+	refresh := func(active int) *Summary {
+		summary = Summary{Active: active, Busy: active > 0}
+		tr.Refresh()
+		p.run()
+		return tr.shownIcon
+	}
+
+	first := refresh(0)
+	// Same state: the icon is neither drawn nor sent again
+	if refresh(0) != first {
+		t.Error("the same icon was sent again")
+	}
+	refresh(1)
+	refresh(2)
+	refresh(1)
+	refresh(0)
+
+	check(t, "icons drawn", len(tr.icons), 3)
+	check(t, "icon shown", *tr.shownIcon, Summary{})
+}
