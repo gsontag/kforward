@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"log"
+	"slices"
 	"strings"
 
 	"fyne.io/systray"
@@ -11,6 +12,7 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
 	"gsontag.fr/kforward/internal/config"
+	"gsontag.fr/kforward/internal/editor"
 	"gsontag.fr/kforward/internal/forward"
 	"gsontag.fr/kforward/internal/gui"
 	"gsontag.fr/kforward/internal/kube"
@@ -30,7 +32,15 @@ type app struct {
 	tray    *tray.Tray
 	endTray func()
 	window  *gui.Window
+	tr      *locale.Translator
+	// store is nil when the file could not be read: saving would replace it
+	store  *config.Store
+	client *kube.Client
 }
+
+// errUnreadable refuses to save over a configuration file that could not be
+// read: its forwards would be lost.
+var errUnreadable = errors.New("the configuration file could not be read: fix it by hand first")
 
 // post runs f on the GTK main loop: the only thread touching the UI.
 func post(f func()) {
@@ -47,13 +57,13 @@ func (a *app) activate() {
 	// Without a window, the application would quit at once
 	a.gtk.Hold()
 
-	forwards, client, problem := a.load()
+	forwards, problem := a.load()
 	a.problem = problem
 
-	tr := locale.FromEnvironment()
-	a.tray = tray.New(tr, a.trayState, post, a.handle)
-	a.window = gui.New(a.gtk, tr, a.windowState, post, a.toggle)
-	a.manager = manager.New(connectorFactory(client), forward.DefaultPolicy, func() {
+	a.tr = locale.FromEnvironment()
+	a.tray = tray.New(a.tr, a.trayState, post, a.handle)
+	a.window = gui.New(a.gtk, a.tr, a.windowState, post, a.toggle, a.edit)
+	a.manager = manager.New(connectorFactory(a.client), forward.DefaultPolicy, func() {
 		a.tray.Refresh()
 		a.window.Refresh()
 	})
@@ -75,22 +85,24 @@ func (a *app) shutdown() {
 
 // load reads the configuration and the kubeconfig. Their errors do not stop
 // the application: they are shown at the top of the menu and in the window.
-func (a *app) load() ([]config.Forward, *kube.Client, string) {
+func (a *app) load() ([]config.Forward, string) {
 	path, err := config.DefaultPath()
 	if err != nil {
-		return nil, nil, err.Error()
+		return nil, err.Error()
 	}
 	a.path = path
 
 	store := config.NewStore(path)
 	if err := store.Load(); err != nil {
-		return nil, nil, err.Error()
+		return nil, err.Error()
 	}
+	a.store = store
 	client, err := kube.NewClient(store.Kubeconfig())
 	if err != nil {
-		return store.Forwards(), nil, err.Error()
+		return store.Forwards(), err.Error()
 	}
-	return store.Forwards(), client, ""
+	a.client = client
+	return store.Forwards(), ""
 }
 
 // connectorFactory builds the connectors through client; without one, every
@@ -156,4 +168,46 @@ func (a *app) toggle(uuid string, on bool) {
 	if err != nil {
 		log.Printf("%s: %v", uuid, err)
 	}
+}
+
+// edit opens the edit dialog; an empty UUID adds a forward.
+func (a *app) edit(uuid string) {
+	form := editor.Form{}
+	if uuid != "" {
+		i := slices.IndexFunc(a.manager.Snapshot(), func(e manager.Entry) bool {
+			return e.Forward.UUID == uuid
+		})
+		if i < 0 {
+			return
+		}
+		form = editor.FromForward(a.manager.Snapshot()[i].Forward)
+	}
+	var contexts []string
+	if a.client != nil {
+		contexts = a.client.Contexts()
+	}
+	gui.OpenEditor(a.window, a.tr, form, contexts, gui.Actions{Save: a.save, Delete: a.remove})
+}
+
+func (a *app) save(f config.Forward) error {
+	if a.store == nil {
+		return errUnreadable
+	}
+	if _, err := a.store.SaveForward(f); err != nil {
+		return err
+	}
+	// Only the forwards whose connection changed restart
+	a.manager.Load(a.store.Forwards())
+	return nil
+}
+
+func (a *app) remove(uuid string) error {
+	if a.store == nil {
+		return errUnreadable
+	}
+	if err := a.store.DeleteForward(uuid); err != nil {
+		return err
+	}
+	a.manager.Load(a.store.Forwards())
+	return nil
 }

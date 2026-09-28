@@ -2,6 +2,70 @@
 hash = "sha1-4a9e094bd1a36999f6219cb0d4e63c1181ff5743"
 other = "Une adresse IP, comme 127.0.0.1, ou localhost"
 
+[EditorCancel]
+hash = "sha1-77dfd2135f4db726c47299bb55be26f7f4525a46"
+other = "Annuler"
+
+[EditorConfirmDelete]
+hash = "sha1-0b0311367700c0b4dd745fb6cc41985665cce33e"
+other = "Cliquez une seconde fois pour effacer"
+
+[EditorCurrentContext]
+hash = "sha1-da30eb5645b8d82fd2d502b671b90a71b2f09031"
+other = "Contexte courant"
+
+[EditorDefaultNamespace]
+hash = "sha1-cc0524ba72751c84f71ed6699ddab2960e58f641"
+other = "Défaut du contexte"
+
+[EditorDelete]
+hash = "sha1-f6fdbe48dc54dd86f63097a03bd24094dedd713a"
+other = "Supprimer"
+
+[EditorEditTitle]
+hash = "sha1-26d22a0aa032d15cd11fcddc54a8b92af7611462"
+other = "Modifier {{.Name}}"
+
+[EditorFieldAddress]
+hash = "sha1-56dc6c333d7f7dc9d3307fcd5651611ee78ed83b"
+other = "Adresse d'écoute"
+
+[EditorFieldAutoStart]
+hash = "sha1-c6d9e1223476543f9b1fc739730e30c720128884"
+other = "Démarrer avec l'application"
+
+[EditorFieldContext]
+hash = "sha1-cc11b3a28fa30ae6d3d3ad1438824cbd5224ba5c"
+other = "Contexte"
+
+[EditorFieldGroup]
+hash = "sha1-171a0606f7c74580fd3982cf57c49d604104120a"
+other = "Groupe"
+
+[EditorFieldLocalPort]
+hash = "sha1-cd09ff31c47a8b54aae1094249204cdbc160ec0c"
+other = "Port local"
+
+[EditorFieldName]
+hash = "sha1-709a23220f2c3d64d1e1d6d18c4d5280f8d82fca"
+other = "Nom"
+
+[EditorFieldNamespace]
+hash = "sha1-0449e1003dd0cdd92ab163e844540614258e8b38"
+other = "Espace de noms"
+
+[EditorFieldRemotePort]
+hash = "sha1-69b42d0373cdfd63cb44f112a0e62c97ae51420f"
+other = "Port distant"
+
+[EditorFieldTarget]
+hash = "sha1-61ad50a9b9189cc3cf1874568e35e7901ff4c982"
+other = "Cible"
+
+[EditorFieldURL]
+hash = "sha1-0e2d9b0777a485c1276de0803c12a7d76fbc5c39"
+other = "URL"
+
 [EditorLocalPortInvalid]
 hash = "sha1-3822a36964727547ddde611f2bfe2b84fa0b4fc1"
 other = "Un numéro de port, entre 1 et 65535"
@@ -10,9 +74,17 @@ other = "Un numéro de port, entre 1 et 65535"
 hash = "sha1-f53c62e0c100ae59ef6b8bb450a934b39cd47cf2"
 other = "Un nom est obligatoire"
 
+[EditorNewTitle]
+hash = "sha1-6ce96111a1e0ce33a8221e38e92789529e4b174d"
+other = "Nouveau forward"
+
 [EditorRemotePortInvalid]
 hash = "sha1-7e9d43562ea183729d091c6fcb2f848c3eeece88"
 other = "Un numéro de port, ou un nom de port composé de lettres minuscules, de chiffres et de tirets"
+
+[EditorSave]
+hash = "sha1-efc007a393f66cdb14d57d385822a3d9e36ef873"
+other = "Enregistrer"
 
 [EditorTargetInvalid]
 description = "pod, svc, deploy and sts are kubectl kinds: not to translate"
@@ -78,6 +150,14 @@ other = "Tout arrêter"
 description = "Header of the forwards without group"
 hash = "sha1-bf06d85fea44e12ce15a32137bc0174bdfde59fd"
 other = "Autres"
+
+[WindowAdd]
+hash = "sha1-470fae837a6da5a477de200319e9c6d8fd451133"
+other = "Ajouter un forward"
+
+[WindowEdit]
+hash = "sha1-5301648dcf6b53cefc9ed52999aaa92d4603cae0"
+other = "Modifier"
 
 [WindowEmpty]
 hash = "sha1-b91516c14560523d4cf6e6935fb81d118a41a988"

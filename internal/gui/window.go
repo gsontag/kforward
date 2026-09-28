@@ -36,6 +36,8 @@ type Window struct {
 	layout  string
 	// updating tells the switch handlers that the change comes from render
 	updating bool
+	// edit opens the edit dialog of a forward; an empty UUID adds one
+	edit func(uuid string)
 }
 
 type rowWidgets struct {
@@ -44,21 +46,29 @@ type rowWidgets struct {
 }
 
 // New builds the window, hidden; toggle receives the switch changes made by
-// the user.
+// the user, edit the requests to add or edit a forward.
 func New(
 	app *gtk.Application,
 	tr *locale.Translator,
 	source Source,
 	post func(func()),
 	toggle func(string, bool),
+	edit func(string),
 ) *Window {
-	w := &Window{tr: tr, source: source, post: post, toggle: toggle}
+	w := &Window{tr: tr, source: source, post: post, toggle: toggle, edit: edit}
 
 	w.win = gtk.NewApplicationWindow(app)
 	w.win.SetTitle(tr.T(msgTitle, nil))
 	w.win.SetDefaultSize(560, 480)
 	// Closing only hides: the forwards keep running behind the tray icon
 	w.win.SetHideOnClose(true)
+
+	add := gtk.NewButtonFromIconName("list-add-symbolic")
+	add.SetTooltipText(tr.T(msgAdd, nil))
+	add.ConnectClicked(func() { w.edit("") })
+	header := gtk.NewHeaderBar()
+	header.PackStart(add)
+	w.win.SetTitlebar(header)
 
 	w.problem = gtk.NewLabel("")
 	w.problem.AddCSSClass("error")
@@ -168,12 +178,19 @@ func (w *Window) rebuild(rows []window.Row) {
 		texts.Append(ws.status)
 		texts.Append(ws.err)
 
+		editButton := gtk.NewButtonFromIconName("document-edit-symbolic")
+		editButton.SetTooltipText(w.tr.T(msgEdit, nil))
+		editButton.SetVAlign(gtk.AlignCenter)
+		editButton.AddCSSClass("flat")
+		editButton.ConnectClicked(func() { w.edit(uuid) })
+
 		line := gtk.NewBox(gtk.OrientationHorizontal, 12)
 		line.SetMarginTop(6)
 		line.SetMarginBottom(6)
 		line.SetMarginStart(12)
 		line.SetMarginEnd(12)
 		line.Append(texts)
+		line.Append(editButton)
 		line.Append(ws.sw)
 
 		w.list.Append(line)
