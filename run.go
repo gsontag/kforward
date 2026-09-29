@@ -41,7 +41,7 @@ func runForward(name string) int {
 		switch {
 		case s.State == forward.Active:
 			fmt.Printf(
-				"%s: active, %s:%d → pod %s/%s:%d\n",
+				"%s: active, %s:%d -> pod %s/%s:%d\n",
 				f.Name,
 				f.BindAddress(),
 				f.LocalPort,

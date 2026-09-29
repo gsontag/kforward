@@ -92,8 +92,8 @@ func TestMarshalRemotePort(t *testing.T) {
 		port intstr.IntOrString
 		want string
 	}{
-		{"numéro", intstr.FromInt32(80), `"remote-port":80`},
-		{"port nommé", intstr.FromString("http-web"), `"remote-port":"http-web"`},
+		{"number", intstr.FromInt32(80), `"remote-port":80`},
+		{"named port", intstr.FromString("http-web"), `"remote-port":"http-web"`},
 	}
 
 	for _, tt := range tests {
@@ -114,7 +114,7 @@ func TestDefaultConfigMarshal(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Marshal: %v", err)
 	}
-	// Une slice nil sortirait en null, que la popup devrait ensuite gérer
+	// A nil slice would be written as null, which the popup would have to handle
 	check(t, "DefaultConfig JSON", string(data), `{"forwards":[]}`)
 }
 
@@ -136,42 +136,42 @@ func TestForwardValidate(t *testing.T) {
 	tests := []struct {
 		name    string
 		mutate  func(*Forward)
-		wantErr string // vide = doit être valide
+		wantErr string // empty = must be valid
 	}{
-		{"valide", func(*Forward) {}, ""},
-		{"sans nom", func(f *Forward) { f.Name = "  " }, "name is required"},
-		{"port local à 0", func(f *Forward) { f.LocalPort = 0 }, "local-port is required"},
-		{"sans cible", func(f *Forward) { f.Target = "" }, "target is required"},
+		{"valid", func(*Forward) {}, ""},
+		{"no name", func(f *Forward) { f.Name = "  " }, "name is required"},
+		{"local port 0", func(f *Forward) { f.LocalPort = 0 }, "local-port is required"},
+		{"no target", func(f *Forward) { f.Target = "" }, "target is required"},
 		{
-			"port distant absent",
+			"remote port missing",
 			func(f *Forward) { f.RemotePort = intstr.IntOrString{} },
 			"between 1 and 65535",
 		},
 		{
-			"port distant trop grand",
+			"remote port too large",
 			func(f *Forward) { f.RemotePort = intstr.FromInt32(70000) },
 			"between 1 and 65535",
 		},
-		{"port nommé", func(f *Forward) { f.RemotePort = intstr.FromString("http-web") }, ""},
+		{"named port", func(f *Forward) { f.RemotePort = intstr.FromString("http-web") }, ""},
 		{
-			"port nommé en majuscules",
+			"named port in capitals",
 			func(f *Forward) { f.RemotePort = intstr.FromString("HTTP") },
 			"remote-port:",
 		},
 		{
-			"port nommé trop long",
+			"named port too long",
 			func(f *Forward) { f.RemotePort = intstr.FromString("un-nom-bien-trop-long") },
 			"remote-port:",
 		},
 		{
-			"port nommé vide",
+			"empty named port",
 			func(f *Forward) { f.RemotePort = intstr.FromString("") },
 			"remote-port:",
 		},
-		{"adresse localhost", func(f *Forward) { f.Address = "localhost" }, ""},
-		{"adresse 0.0.0.0", func(f *Forward) { f.Address = "0.0.0.0" }, ""},
-		{"adresse IPv6", func(f *Forward) { f.Address = "::1" }, ""},
-		{"adresse invalide", func(f *Forward) { f.Address = "pas-une-ip" }, `address "pas-une-ip"`},
+		{"localhost address", func(f *Forward) { f.Address = "localhost" }, ""},
+		{"any address", func(f *Forward) { f.Address = "0.0.0.0" }, ""},
+		{"IPv6 address", func(f *Forward) { f.Address = "::1" }, ""},
+		{"invalid address", func(f *Forward) { f.Address = "not-an-ip" }, `address "not-an-ip"`},
 	}
 
 	for _, tt := range tests {
@@ -200,17 +200,17 @@ func TestConfigValidate(t *testing.T) {
 	tests := []struct {
 		name     string
 		forwards []Forward
-		wantErrs []string // vide = doit être valide
+		wantErrs []string // empty = must be valid
 	}{
-		{"vide", nil, nil},
-		{"deux forwards distincts", []Forward{validForward(), second}, nil},
+		{"empty", nil, nil},
+		{"two distinct forwards", []Forward{validForward(), second}, nil},
 		{
-			"uuid en double",
+			"duplicate uuid",
 			[]Forward{validForward(), validForward()},
 			[]string{`forward #2 (grafana): duplicate uuid "1"`},
 		},
 		{
-			"uuid vide",
+			"empty uuid",
 			[]Forward{
 				{
 					Name:       "grafana",
@@ -222,8 +222,8 @@ func TestConfigValidate(t *testing.T) {
 			[]string{"forward #1 (grafana): uuid is required"},
 		},
 		{
-			// Aucune erreur ne doit être perdue, et chacune porte son préfixe
-			"plusieurs erreurs",
+			// No error may be lost, and each one has its prefix
+			"several errors",
 			[]Forward{validForward(), {UUID: "1", RemotePort: intstr.FromInt32(80)}},
 			[]string{
 				`forward #2: duplicate uuid "1"`,

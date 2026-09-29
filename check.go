@@ -26,11 +26,11 @@ func runCheck() int {
 	for _, f := range store.Forwards() {
 		line, err := checkForward(client, f)
 		if err != nil {
-			fmt.Printf("  ✗ %s: %v\n", f.Name, err)
+			fmt.Printf("  KO %s: %v\n", f.Name, err)
 			status = 1
 			continue
 		}
-		fmt.Printf("  ✓ %s: %s\n", f.Name, line)
+		fmt.Printf("  OK %s: %s\n", f.Name, line)
 	}
 	return status
 }
@@ -51,7 +51,7 @@ func checkForward(client *kube.Client, f config.Forward) (string, error) {
 	}
 
 	return fmt.Sprintf(
-		"[%s] %s/%s → pod %s:%d, listening on %s:%d",
+		"[%s] %s/%s -> pod %s:%d, listening on %s:%d",
 		connector.Context(),
 		endpoint.Namespace,
 		f.Target,

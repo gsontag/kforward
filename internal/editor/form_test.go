@@ -85,7 +85,7 @@ func TestFieldProblems(t *testing.T) {
 		{"empty remote port", func(f *Form) { f.RemotePort = "" }, RemotePort, ""},
 		{
 			"address",
-			func(f *Form) { f.Address = "pas-une-ip" },
+			func(f *Form) { f.Address = "not-an-ip" },
 			Address,
 			"An IP address, such as 127.0.0.1, or localhost",
 		},

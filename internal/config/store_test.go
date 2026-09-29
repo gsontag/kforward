@@ -17,7 +17,7 @@ const validConfig = `{
 	]
 }`
 
-// writeFile prépare un fichier de config sur disque ; échoue le test sinon.
+// writeFile writes a configuration file, or fails the test.
 func writeFile(t *testing.T, path, content string) {
 	t.Helper()
 	if err := os.WriteFile(path, []byte(content), 0o600); err != nil {
@@ -25,7 +25,7 @@ func writeFile(t *testing.T, path, content string) {
 	}
 }
 
-// loadStore renvoie un store chargé depuis validConfig.
+// loadStore returns a store loaded from validConfig.
 func loadStore(t *testing.T) (*Store, string) {
 	t.Helper()
 	path := filepath.Join(t.TempDir(), "config.json")
@@ -106,7 +106,7 @@ func TestForwardsReturnsCopy(t *testing.T) {
 	s, _ := loadStore(t)
 
 	fws := s.Forwards()
-	fws[0].Name = "modifié"
+	fws[0].Name = "changed"
 
 	check(t, "Name", s.Forwards()[0].Name, "grafana")
 }
@@ -142,8 +142,8 @@ func TestSaveKeepsForwards(t *testing.T) {
 	check(t, "Forwards size", len(reloaded.Forwards()), 1)
 }
 
-// N'échoue réellement que sous go test -race : sans verrou, le détecteur
-// signale l'accès concurrent à s.config.
+// Only fails under go test -race: without the lock, the detector reports
+// the concurrent access to s.config.
 func TestConcurrentAccess(t *testing.T) {
 	s, _ := loadStore(t)
 

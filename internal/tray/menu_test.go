@@ -84,9 +84,9 @@ func TestToggleItem(t *testing.T) {
 		wantChecked bool
 		wantTooltip string
 	}{
-		{forward.Stopped, nil, ":3000", false, "svc/a ➔ localhost:3000"},
+		{forward.Stopped, nil, ":3000", false, "svc/a → localhost:3000"},
 		{forward.Connecting, boom, "— connecting…", true, "no ready pod"},
-		{forward.Active, nil, ":3000", true, "svc/a ➔ localhost:3000"},
+		{forward.Active, nil, ":3000", true, "svc/a → localhost:3000"},
 		// Given up: no longer wanted, so unchecked; a click starts it again
 		{forward.Failed, boom, "— failed", false, "no ready pod"},
 	}
@@ -193,7 +193,7 @@ func TestBuildHeader(t *testing.T) {
 		want    []Item
 	}{
 		{"problem", []manager.Entry{entry("a", "", forward.Stopped)}, "invalid config", []Item{
-			{Kind: Label, Text: "⚠️ invalid config", Disabled: true},
+			{Kind: Label, Text: "⚠ invalid config", Disabled: true},
 			{Kind: Separator},
 		}},
 		{"empty", nil, "", []Item{
@@ -202,7 +202,7 @@ func TestBuildHeader(t *testing.T) {
 		}},
 		// The problem explains the empty list: no second message
 		{"empty with problem", nil, "invalid config", []Item{
-			{Kind: Label, Text: "⚠️ invalid config", Disabled: true},
+			{Kind: Label, Text: "⚠ invalid config", Disabled: true},
 			{Kind: Separator},
 		}},
 	}

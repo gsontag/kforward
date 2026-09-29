@@ -5,7 +5,7 @@ import "github.com/nicksnyder/go-i18n/v2/i18n"
 // The English texts of the menu. goi18n extract collects them into the
 // translation files: an ID must never change once translated.
 var (
-	msgProblem = &i18n.Message{ID: "TrayProblem", Other: "⚠️ {{.Problem}}"}
+	msgProblem = &i18n.Message{ID: "TrayProblem", Other: "⚠ {{.Problem}}"}
 	msgEmpty   = &i18n.Message{ID: "TrayEmpty", Other: "No forward configured"}
 	msgOther   = &i18n.Message{
 		ID:          "TrayUngrouped",
@@ -20,7 +20,7 @@ var (
 	msgFailed = &i18n.Message{ID: "TrayForwardFailed", Other: "{{.Name}}  :{{.Port}} — failed"}
 	msgTarget = &i18n.Message{
 		ID:    "TrayForwardTarget",
-		Other: "{{.Target}} ➔ localhost:{{.Port}}",
+		Other: "{{.Target}} → localhost:{{.Port}}",
 	}
 	msgOpen    = &i18n.Message{ID: "TrayOpenInBrowser", Other: "Open in browser"}
 	msgStopAll = &i18n.Message{ID: "TrayStopAll", Other: "Stop all"}

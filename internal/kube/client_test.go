@@ -28,8 +28,8 @@ contexts:
   context: {cluster: missing, user: me}
 `
 
-// Un chemin explicite est indispensable : avec un chemin vide, client-go lirait
-// le vrai ~/.kube/config, calculé au chargement du package.
+// An explicit path is required: with an empty one, client-go would read the
+// real ~/.kube/config, computed when the package is loaded.
 func writeKubeconfig(t *testing.T, content string) string {
 	t.Helper()
 	path := filepath.Join(t.TempDir(), "kubeconfig")
@@ -65,9 +65,9 @@ func TestCluster(t *testing.T) {
 		wantContext   string
 		wantNamespace string
 	}{
-		{"contexte courant", "", "prod", "monitoring"},
-		{"contexte nommé", "prod", "prod", "monitoring"},
-		{"namespace par défaut", "staging", "staging", "default"},
+		{"current context", "", "prod", "monitoring"},
+		{"named context", "prod", "prod", "monitoring"},
+		{"default namespace", "staging", "staging", "default"},
 	}
 
 	c := newTestClient(t)
@@ -90,8 +90,8 @@ func TestClusterErrors(t *testing.T) {
 		context string
 		wantErr string
 	}{
-		{"cluster manquant", "broken", `cluster "missing" not found`},
-		{"contexte inconnu", "nope", `unknown context "nope"`},
+		{"missing cluster", "broken", `cluster "missing" not found`},
+		{"unknown context", "nope", `unknown context "nope"`},
 	}
 
 	c := newTestClient(t)
@@ -107,7 +107,7 @@ func TestClusterErrors(t *testing.T) {
 		})
 	}
 
-	// Le contexte cassé ne doit pas empêcher d'utiliser les autres
+	// A broken context must not prevent using the others
 	if _, err := c.Cluster("prod"); err != nil {
 		t.Errorf("Cluster(prod) after a broken context: %v", err)
 	}
@@ -133,8 +133,8 @@ func TestExplicitPathMissing(t *testing.T) {
 	}
 }
 
-// KUBECONFIG est relu à chaque appel, contrairement à ~/.kube/config :
-// on peut donc tester la fusion en ne pointant que vers des fichiers du test.
+// KUBECONFIG is read at each call, unlike ~/.kube/config: the merge can be
+// tested with files of the test only.
 func TestKubeconfigEnvMerge(t *testing.T) {
 	extra := writeKubeconfig(t, `apiVersion: v1
 kind: Config
@@ -153,7 +153,7 @@ contexts:
 	if !slices.Equal(got, want) {
 		t.Errorf("Contexts() = %v, want %v", got, want)
 	}
-	// Le contexte du second fichier utilise le cluster défini dans le premier
+	// The context of the second file uses the cluster of the first one
 	if _, err := c.Cluster("extra"); err != nil {
 		t.Errorf("Cluster(extra): %v", err)
 	}

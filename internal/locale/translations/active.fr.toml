@@ -28,11 +28,11 @@ other = "Modifier {{.Name}}"
 
 [EditorFieldAddress]
 hash = "sha1-56dc6c333d7f7dc9d3307fcd5651611ee78ed83b"
-other = "Adresse d'écoute"
+other = "Adresse d’écoute"
 
 [EditorFieldAutoStart]
 hash = "sha1-c6d9e1223476543f9b1fc739730e30c720128884"
-other = "Démarrer avec l'application"
+other = "Démarrer avec l’application"
 
 [EditorFieldContext]
 hash = "sha1-cc11b3a28fa30ae6d3d3ad1438824cbd5224ba5c"
@@ -123,16 +123,16 @@ hash = "sha1-3b361fbf8075b701b8df57aecfec04075a6fafec"
 other = "{{.Name}}  :{{.Port}} — échec"
 
 [TrayForwardTarget]
-hash = "sha1-2af51e6b4448e582211d7e2da826f15f0142efca"
-other = "{{.Target}} ➔ localhost:{{.Port}}"
+hash = "sha1-0933fc834d88df0bd86bd42855ea2d5217e5a50c"
+other = "{{.Target}} → localhost:{{.Port}}"
 
 [TrayOpenInBrowser]
 hash = "sha1-052269b2c823a67547b0bb8b6117c8df28d9e78e"
 other = "Ouvrir dans le navigateur"
 
 [TrayProblem]
-hash = "sha1-9e6eb50bacd950a22d3afc83f99086a57b3e0701"
-other = "⚠️ {{.Problem}}"
+hash = "sha1-c32734f0831e29e80b0071cd67a6dbf939ea631d"
+other = "⚠ {{.Problem}}"
 
 [TrayQuit]
 hash = "sha1-1a2285d8881f226e13430515a9dd2b9fb6294200"

@@ -100,7 +100,7 @@ func badge(img *image.NRGBA, text string) error {
 func pill(size int, x, y, w, h float32) *vector.Rasterizer {
 	r := vector.NewRasterizer(size, size)
 	rad := h / 2
-	// Cubic Bézier approximation of a quarter circle
+	// Cubic Bezier approximation of a quarter circle
 	k := rad * 0.5523
 	r.MoveTo(x+rad, y)
 	r.LineTo(x+w-rad, y)

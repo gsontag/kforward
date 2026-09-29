@@ -36,7 +36,7 @@ func TestSort(t *testing.T) {
 			{UUID: "1", Name: "Zeta"},
 			{UUID: "2", Name: "alpha"},
 		}, "/alpha /Zeta"},
-		// Byte order would put "É" after "z"
+		// Byte order would put an accented capital after "z"
 		{"accents", []Forward{
 			{UUID: "1", Name: "mariadb"},
 			{UUID: "2", Name: "Élasticsearch"},
