@@ -10,16 +10,14 @@ import (
 
 	"gsontag.fr/kforward/internal/icon"
 	"gsontag.fr/kforward/internal/locale"
-	"gsontag.fr/kforward/internal/manager"
 )
 
 // iconSize is the side of the drawn icon: large enough for HiDPI panels,
 // which scale it down.
 const iconSize = 64
 
-// Source provides what the tray shows: the forwards and the configuration
-// problem, if any.
-type Source func() (entries []manager.Entry, problem string)
+// Source provides what the tray shows.
+type Source func() State
 
 // Tray renders the menu in the status notifier icon. Except Refresh, its
 // methods run on the UI thread: the one post executes functions on.
@@ -60,10 +58,10 @@ func (t *Tray) Refresh() {
 }
 
 func (t *Tray) render() {
-	entries, problem := t.source()
-	items := Build(entries, problem, t.tr)
+	state := t.source()
+	items := Build(state, t.tr)
 
-	summary := Summarize(entries)
+	summary := Summarize(state.Entries)
 	t.showIcon(summary)
 	systray.SetTooltip(Tooltip(summary, t.tr))
 

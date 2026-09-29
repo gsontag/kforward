@@ -118,6 +118,10 @@ many = "{{.Count}} forwards actifs"
 one = "{{.Count}} forward actif"
 other = "{{.Count}} forwards actifs"
 
+[TrayAutostart]
+hash = "sha1-4c0a93200d4de847b0fded51d5f9bb7ffd30d603"
+other = "Démarrer automatiquement"
+
 [TrayEditConfig]
 hash = "sha1-774e3aa3816d14d98796637aff36dae6f6953ab2"
 other = "Modifier la configuration…"

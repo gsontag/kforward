@@ -32,4 +32,5 @@ var (
 	}
 	msgShowWindow = &i18n.Message{ID: "TrayShowWindow", Other: "Open window…"}
 	msgOpenLog    = &i18n.Message{ID: "TrayOpenLog", Other: "Open log…"}
+	msgAutostart  = &i18n.Message{ID: "TrayAutostart", Other: "Start at login"}
 )

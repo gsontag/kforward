@@ -12,6 +12,7 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gio/v2"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
+	"gsontag.fr/kforward/internal/autostart"
 	"gsontag.fr/kforward/internal/config"
 	"gsontag.fr/kforward/internal/editor"
 	"gsontag.fr/kforward/internal/forward"
@@ -53,6 +54,9 @@ type app struct {
 	// notifyPending coalesces the checks for notifications, like tray.Refresh
 	notifyPending atomic.Bool
 
+	// autostart is the entry starting the application at login
+	autostart autostart.Entry
+
 	// logPath is the log file, empty when the log only goes to stderr
 	logPath string
 }
@@ -77,6 +81,7 @@ func (a *app) activate() {
 	a.gtk.Hold()
 
 	a.logPath = setupLog()
+	a.autostart = newAutostart()
 
 	forwards := a.load()
 
@@ -88,7 +93,7 @@ func (a *app) activate() {
 	a.watchConfig()
 
 	a.tracker = notify.NewTracker(a.tr)
-	a.sender = notify.NewSender("Kube Forwarder", appID, "network-error-symbolic")
+	a.sender = notify.NewSender(appName, appID, "network-error-symbolic")
 
 	start, end := systray.RunWithExternalLoop(a.tray.Refresh, nil)
 	start()
@@ -97,6 +102,17 @@ func (a *app) activate() {
 	if !a.background {
 		a.window.Show()
 	}
+}
+
+// newAutostart returns the autostart entry of the running program. Without
+// one, the zero entry is never enabled and fails to enable: the menu item
+// then only logs why.
+func newAutostart() autostart.Entry {
+	e, err := autostart.Default(appID, appName)
+	if err != nil {
+		slog.Warn("autostart", "err", err)
+	}
+	return e
 }
 
 func (a *app) shutdown() {
@@ -208,6 +224,13 @@ func (a *app) handle(it tray.Item) {
 		a.window.Show()
 	case tray.OpenLog:
 		err = gio.AppInfoLaunchDefaultForURI(gio.NewFileForPath(a.logPath).URI(), nil)
+	case tray.ToggleAutostart:
+		if it.Checked {
+			err = a.autostart.Disable()
+		} else {
+			err = a.autostart.Enable()
+		}
+		a.tray.Refresh()
 	case tray.None:
 	}
 	if err != nil {
@@ -215,10 +238,14 @@ func (a *app) handle(it tray.Item) {
 	}
 }
 
-func (a *app) trayState() ([]manager.Entry, string) {
+func (a *app) trayState() tray.State {
 	// A menu item has a single line: the first one tells what is wrong
 	line, _, _ := strings.Cut(a.problem(), "\n")
-	return a.manager.Snapshot(), line
+	return tray.State{
+		Entries:   a.manager.Snapshot(),
+		Problem:   line,
+		Autostart: a.autostart.Enabled(),
+	}
 }
 
 func (a *app) windowState() ([]manager.Entry, string) {

@@ -17,6 +17,9 @@ import (
 // the icon in data/ are named after it.
 const appID = "fr.gsontag.kforward"
 
+// appName is the name the desktop shows, as in the .desktop file.
+const appName = "Kube Forwarder"
+
 func main() {
 	check := flag.Bool("check", false, "check the configuration against the kubeconfig and exit")
 	forward := flag.String(

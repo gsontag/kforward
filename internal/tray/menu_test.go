@@ -134,8 +134,12 @@ func TestStopAllEnabled(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.state.String(), func(t *testing.T) {
 			items := Build(
-				[]manager.Entry{entry("a", "", forward.Stopped), entry("b", "", tt.state)},
-				"",
+				State{
+					Entries: []manager.Entry{
+						entry("a", "", forward.Stopped),
+						entry("b", "", tt.state),
+					},
+				},
 				tr,
 			)
 			check(t, "disabled", find(t, items, StopAll).Disabled, tt.wantDisabled)
@@ -148,11 +152,11 @@ func TestURLSubmenu(t *testing.T) {
 		e.Forward.URL = "http://localhost:3000/" + e.Forward.UUID
 		return e
 	}
-	items := Build([]manager.Entry{
+	items := Build(State{Entries: []manager.Entry{
 		withURL(entry("active", "", forward.Active)),
 		entry("nourl", "", forward.Active),
 		withURL(entry("connecting", "", forward.Connecting)),
-	}, "", tr)
+	}}, tr)
 
 	var submenu *Item
 	for i := range items {
@@ -179,7 +183,7 @@ func TestURLSubmenu(t *testing.T) {
 	}
 
 	// Without any URL, no submenu at all
-	for _, it := range Build([]manager.Entry{entry("nourl", "", forward.Active)}, "", tr) {
+	for _, it := range Build(State{Entries: []manager.Entry{entry("nourl", "", forward.Active)}}, tr) {
 		if it.Kind == Submenu {
 			t.Error("unexpected submenu without URL")
 		}
@@ -210,7 +214,7 @@ func TestBuildHeader(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			items := Build(tt.entries, tt.problem, tr)
+			items := Build(State{Entries: tt.entries, Problem: tt.problem}, tr)
 			if got := items[:len(tt.want)]; !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("menu starts with %+v, want %+v", got, tt.want)
 			}
@@ -219,16 +223,17 @@ func TestBuildHeader(t *testing.T) {
 }
 
 func TestBuildFooter(t *testing.T) {
-	items := Build([]manager.Entry{entry("a", "", forward.Stopped)}, "", tr)
+	items := Build(State{Entries: []manager.Entry{entry("a", "", forward.Stopped)}}, tr)
 
 	ops := make([]string, 0, len(items))
 	for _, it := range items {
 		ops = append(ops, fmt.Sprintf("%d:%d", it.Kind, it.Action.Op))
 	}
 	got := strings.Join(ops, " ")
-	want := fmt.Sprintf("%d:%d %d:%d %d:%d %d:%d %d:%d %d:%d %d:%d %d:%d %d:%d",
+	want := fmt.Sprintf("%d:%d %d:%d %d:%d %d:%d %d:%d %d:%d %d:%d %d:%d %d:%d %d:%d",
 		Toggle, ToggleForward, Separator, None, Button, StopAll, Separator, None,
-		Button, ShowWindow, Button, EditConfig, Button, OpenLog, Separator, None, Button, Quit)
+		Button, ShowWindow, Button, EditConfig, Button, OpenLog, Separator, None,
+		Toggle, ToggleAutostart, Button, Quit)
 	check(t, "kinds and operations", got, want)
 }
 
@@ -282,7 +287,7 @@ func TestBuildInFrench(t *testing.T) {
 	fr := locale.New("fr-FR")
 	e := entry("a", "", forward.Failed)
 	e.Forward.Group = ""
-	items := Build([]manager.Entry{entry("b", "db", forward.Connecting), e}, "", fr)
+	items := Build(State{Entries: []manager.Entry{entry("b", "db", forward.Connecting), e}}, fr)
 
 	texts := make([]string, 0, len(items))
 	for _, it := range items {
@@ -291,7 +296,8 @@ func TestBuildInFrench(t *testing.T) {
 		}
 	}
 	want := "db | b  :3000 — connexion… | Autres | a  :3000 — échec | " +
-		"Tout arrêter | Ouvrir la fenêtre… | Modifier la configuration… | Ouvrir le journal… | Quitter"
+		"Tout arrêter | Ouvrir la fenêtre… | Modifier la configuration… | " +
+		"Ouvrir le journal… | Démarrer automatiquement | Quitter"
 	check(t, "texts", strings.Join(texts, " | "), want)
 }
 
@@ -320,5 +326,17 @@ func TestTooltip(t *testing.T) {
 			Tooltip(Summary{Active: tt.active}, fr),
 			tt.french,
 		)
+	}
+}
+
+func TestBuildAutostart(t *testing.T) {
+	for _, enabled := range []bool{false, true} {
+		t.Run(fmt.Sprint(enabled), func(t *testing.T) {
+			item := find(t, Build(State{Autostart: enabled}, tr), ToggleAutostart)
+			check(t, "kind", item.Kind, Toggle)
+			check(t, "text", item.Text, "Start at login")
+			// The click handler reads it: checked means the click disables
+			check(t, "checked", item.Checked, enabled)
+		})
 	}
 }

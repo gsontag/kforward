@@ -137,9 +137,9 @@ func TestRefreshCoalesces(t *testing.T) {
 	// Counting the reads of the source counts the renders; without a D-Bus
 	// connection, the systray calls do nothing
 	renders := 0
-	source := func() ([]manager.Entry, string) {
+	source := func() State {
 		renders++
-		return nil, ""
+		return State{}
 	}
 	tr := New(locale.New(), source, p.post, nil)
 
@@ -164,7 +164,7 @@ func TestRefreshCoalesces(t *testing.T) {
 func TestClickReadsTheCurrentItem(t *testing.T) {
 	var p fakePost
 	state := forward.Stopped
-	source := func() ([]manager.Entry, string) {
+	source := func() State {
 		e := manager.Entry{
 			Forward: config.Forward{
 				UUID:      "a",
@@ -174,7 +174,7 @@ func TestClickReadsTheCurrentItem(t *testing.T) {
 			},
 			Status: forward.Status{State: state},
 		}
-		return []manager.Entry{e}, ""
+		return State{Entries: []manager.Entry{e}}
 	}
 	clicked := make(chan Item, 1)
 	tr := New(locale.New(), source, p.post, func(it Item) { clicked <- it })
@@ -206,12 +206,12 @@ func TestClickReadsTheCurrentItem(t *testing.T) {
 func TestIconDrawnOncePerState(t *testing.T) {
 	var p fakePost
 	summary := Summary{}
-	source := func() ([]manager.Entry, string) {
+	source := func() State {
 		entries := make([]manager.Entry, 0, summary.Active)
 		for range summary.Active {
 			entries = append(entries, manager.Entry{Status: forward.Status{State: forward.Active}})
 		}
-		return entries, ""
+		return State{Entries: entries}
 	}
 	tr := New(locale.New(), source, p.post, nil)
 	refresh := func(active int) *Summary {

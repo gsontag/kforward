@@ -33,6 +33,7 @@ const (
 	Quit
 	ShowWindow
 	OpenLog
+	ToggleAutostart
 )
 
 // Action is the operation of a click, with its argument.
@@ -54,9 +55,18 @@ type Item struct {
 	Children []Item
 }
 
-// Build returns the menu showing entries; problem, when not empty, is a
-// configuration error displayed at the top.
-func Build(entries []manager.Entry, problem string, tr *locale.Translator) []Item {
+// State is what the menu shows.
+type State struct {
+	Entries []manager.Entry
+	// Problem, when not empty, is a configuration error displayed at the top
+	Problem string
+	// Autostart tells whether the application starts at login
+	Autostart bool
+}
+
+// Build returns the menu showing s.
+func Build(s State, tr *locale.Translator) []Item {
+	entries, problem := s.Entries, s.Problem
 	var items []Item
 	if problem != "" {
 		items = append(
@@ -101,6 +111,12 @@ func Build(entries []manager.Entry, problem string, tr *locale.Translator) []Ite
 		Item{Kind: Button, Text: tr.T(msgEdit, nil), Action: Action{Op: EditConfig}},
 		Item{Kind: Button, Text: tr.T(msgOpenLog, nil), Action: Action{Op: OpenLog}},
 		Item{Kind: Separator},
+		Item{
+			Kind:    Toggle,
+			Text:    tr.T(msgAutostart, nil),
+			Checked: s.Autostart,
+			Action:  Action{Op: ToggleAutostart},
+		},
 		Item{Kind: Button, Text: tr.T(msgQuit, nil), Action: Action{Op: Quit}},
 	)
 	return items
