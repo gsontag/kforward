@@ -1,5 +1,7 @@
 # kforward
 
+[![CI](https://github.com/gsontag/kforward/actions/workflows/ci.yml/badge.svg)](https://github.com/gsontag/kforward/actions/workflows/ci.yml)
+
 Keep your `kubectl port-forward`s running from the system tray.
 
 kforward is a small Linux desktop application: each forward is a switch in
