@@ -32,15 +32,16 @@ cannot, you get a notification.
 - Linux with a tray that supports StatusNotifierItem: KDE, XFCE, Cinnamon...
   On GNOME, the *AppIndicator and KStatusNotifierItem Support* extension
   (installed by default on Ubuntu).
-- GTK 4.
+- GTK 4 and GLib 2.88 or later, as in Ubuntu 26.04: the GTK bindings use
+  recent GLib functions.
 - A kubeconfig: kforward uses client-go, not the `kubectl` binary.
 
 To build it:
 
 - Go 1.27 or later
 - a C compiler and `pkg-config` (the GTK bindings use cgo)
-- the GTK 4 development files: `libgtk-4-dev` on Debian and Ubuntu,
-  `gtk4-devel` on Fedora
+- the GTK 4 development files: `libgtk-4-dev` and `libgirepository1.0-dev`
+  on Debian and Ubuntu, `gtk4-devel` on Fedora
 
 ## Install
 

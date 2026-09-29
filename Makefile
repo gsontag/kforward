@@ -105,7 +105,7 @@ uninstall: ## removes what install added
 		rm -f $(BINDIR)/$(BINARY_NAME) $(ICONDIR)/$(APP_ID).svg $(APPDIR)/$(APP_ID).desktop
 
 ## Test
-# GTK packages build for minutes with -race: kept out of the unit tests
+# GTK packages build for minutes with -race: kept out of the unit and it tests
 TEST_PKGS=$(shell $(GOCMD) list ./internal/... | grep -v /internal/gui)
 
 test: ## runs tests and generates coverage report
@@ -125,6 +125,7 @@ it-cluster: ## creates the kind cluster of the integration tests, if needed
 		fi
 		@mkdir -p "$(dir $(IT_KUBECONFIG))"
 		kind get kubeconfig --name "$(IT_CLUSTER)" > "$(IT_KUBECONFIG)"
+		docker image inspect "$(IT_APP_IMAGE)" >/dev/null 2>&1 || docker pull "$(IT_APP_IMAGE)"
 		kind load docker-image "$(IT_APP_IMAGE)" --name "$(IT_CLUSTER)"
 
 it-clean: ## deletes the kind cluster of the integration tests
@@ -132,7 +133,7 @@ it-clean: ## deletes the kind cluster of the integration tests
 		rm -f "$(IT_KUBECONFIG)"
 
 it: it-cluster ## runs the integration tests against the kind cluster
-		KFORWARD_IT_KUBECONFIG="$(IT_KUBECONFIG)" KFORWARD_IT_IMAGE="$(IT_APP_IMAGE)" $(GOCMD) test -tags integration -race -count=1 -timeout 5m ./internal/...
+		KFORWARD_IT_KUBECONFIG="$(IT_KUBECONFIG)" KFORWARD_IT_IMAGE="$(IT_APP_IMAGE)" $(GOCMD) test -tags integration -race -count=1 -timeout 5m $(TEST_PKGS)
 
 ## All
 all: check-quality build test ## runs quality checks, build and tests
