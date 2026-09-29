@@ -2,6 +2,7 @@ package gui
 
 import (
 	"slices"
+	"strconv"
 
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
@@ -38,6 +39,10 @@ type Editor struct {
 	autoStart *gtk.CheckButton
 	failure   *gtk.Label
 	confirm   bool
+
+	// suggester is nil without a usable kubeconfig: the fields stay plain
+	suggester   *editor.Suggester
+	suggestions map[editor.Level]*suggestions
 }
 
 // OpenEditor shows the dialog for form, over parent; contexts lists the
@@ -47,9 +52,21 @@ func OpenEditor(
 	tr *locale.Translator,
 	form editor.Form,
 	contexts []string,
+	src editor.Source,
+	post func(func()),
 	actions Actions,
 ) {
-	e := &Editor{tr: tr, actions: actions, form: form, fields: map[editor.Field]*field{}}
+	e := &Editor{
+		tr:          tr,
+		actions:     actions,
+		form:        form,
+		fields:      map[editor.Field]*field{},
+		suggestions: map[editor.Level]*suggestions{},
+	}
+
+	if src != nil {
+		e.suggester = editor.NewSuggester(src, post, e.suggest)
+	}
 
 	e.win = gtk.NewWindow()
 	e.win.SetTransientFor(&parent.win.Window)
@@ -96,10 +113,11 @@ func OpenEditor(
 			row++
 		}
 	}
-	addField := func(f editor.Field, label, text, placeholder string) {
+	addField := func(f editor.Field, label, text, placeholder string) *gtk.Entry {
 		fl := &field{entry: newEntry(text, placeholder), problem: problemLabel()}
 		e.fields[f] = fl
-		addRow(label, fl.entry, fl.problem)
+		addRow(label, e.suggestible(fl.entry, f), fl.problem)
+		return fl.entry
 	}
 
 	addField(editor.Name, tr.T(msgFieldName, nil), form.Name, "grafana")
@@ -109,9 +127,9 @@ func OpenEditor(
 	e.contexts, e.context = contextChoice(tr, contexts, form.Context)
 	addRow(tr.T(msgFieldContext, nil), e.context, nil)
 	e.namespace = newEntry(form.Namespace, tr.T(msgDefaultNS, nil))
-	addRow(tr.T(msgFieldNamespace, nil), e.namespace, nil)
+	addRow(tr.T(msgFieldNamespace, nil), e.suggestible(e.namespace, namespaceField), nil)
 
-	addField(editor.Target, tr.T(msgFieldTarget, nil), form.Target, "svc/grafana")
+	target := addField(editor.Target, tr.T(msgFieldTarget, nil), form.Target, "svc/grafana")
 	addField(editor.LocalPort, tr.T(msgFieldLocal, nil), form.LocalPort, "3000")
 	addField(editor.RemotePort, tr.T(msgFieldRemote, nil), form.RemotePort, "80, http")
 	addField(editor.Address, tr.T(msgFieldAddress, nil), form.Address, "127.0.0.1")
@@ -135,8 +153,62 @@ func OpenEditor(
 		grid.Attach(remove, 0, row, 2, 1)
 	}
 
+	if e.suggester != nil {
+		// Each change queries the fields after it; the first queries are for the
+		// values of the forward being edited
+		e.context.NotifyProperty(
+			"selected",
+			func() { e.suggester.SetContext(e.contexts[e.context.Selected()]) },
+		)
+		e.namespace.ConnectChanged(func() { e.suggester.SetNamespace(e.namespace.Text()) })
+		target.ConnectChanged(func() { e.suggester.SetTarget(target.Text()) })
+		e.suggester.SetContext(form.Context)
+		e.suggester.SetNamespace(form.Namespace)
+		e.suggester.SetTarget(form.Target)
+		e.win.ConnectDestroy(e.suggester.Close)
+	}
+
 	e.win.SetChild(grid)
 	e.win.Present()
+}
+
+// namespaceField stands for the namespace, which has suggestions but no
+// problem of its own.
+const namespaceField editor.Field = -1
+
+// levels maps the fields with suggestions to the level that feeds them.
+var levels = map[editor.Field]editor.Level{
+	namespaceField:    editor.Namespaces,
+	editor.Target:     editor.Targets,
+	editor.RemotePort: editor.Ports,
+}
+
+// suggestible adds a suggestions button to entry when field has some and the
+// cluster can be asked.
+func (e *Editor) suggestible(entry *gtk.Entry, f editor.Field) gtk.Widgetter {
+	level, ok := levels[f]
+	if !ok || e.suggester == nil {
+		return entry
+	}
+	box, s := withSuggestions(e.tr, entry, func(c editor.Choice) { e.pick(f, entry, c) })
+	e.suggestions[level] = s
+	return box
+}
+
+// pick fills entry with a chosen suggestion.
+func (e *Editor) pick(f editor.Field, entry *gtk.Entry, c editor.Choice) {
+	entry.SetText(c.Value)
+	local := e.fields[editor.LocalPort].entry
+	if f == editor.RemotePort && local.Text() == "" {
+		local.SetText(strconv.Itoa(int(editor.LocalPortFor(c.Port))))
+	}
+}
+
+// suggest shows the suggestions delivered for a level.
+func (e *Editor) suggest(l editor.Level, choices []editor.Choice, err error) {
+	if s, ok := e.suggestions[l]; ok {
+		s.set(choices, err)
+	}
 }
 
 // contextChoice returns the drop-down of the contexts, the current context

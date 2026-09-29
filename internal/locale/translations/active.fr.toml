@@ -78,6 +78,10 @@ other = "Un nom est obligatoire"
 hash = "sha1-6ce96111a1e0ce33a8221e38e92789529e4b174d"
 other = "Nouveau forward"
 
+[EditorNoSuggestion]
+hash = "sha1-feb652c180327ca28fc06b49814f14edd667d245"
+other = "Aucun résultat dans le cluster"
+
 [EditorRemotePortInvalid]
 hash = "sha1-7e9d43562ea183729d091c6fcb2f848c3eeece88"
 other = "Un numéro de port, ou un nom de port composé de lettres minuscules, de chiffres et de tirets"
@@ -85,6 +89,10 @@ other = "Un numéro de port, ou un nom de port composé de lettres minuscules, d
 [EditorSave]
 hash = "sha1-efc007a393f66cdb14d57d385822a3d9e36ef873"
 other = "Enregistrer"
+
+[EditorSuggestions]
+hash = "sha1-c6cd51b4be5d5994345f54f1c71f08c3e0224b06"
+other = "Sélectionner depuis le cluster"
 
 [EditorTargetInvalid]
 description = "pod, svc, deploy and sts are kubectl kinds: not to translate"

@@ -310,3 +310,18 @@ func TestPortChoices(t *testing.T) {
 		check(t, fmt.Sprintf("choice %d", i), got[i], want[i])
 	}
 }
+
+func TestLocalPortFor(t *testing.T) {
+	tests := []struct{ remote, want int32 }{
+		// Below 1024, only root may listen: moved above
+		{80, 8080},
+		{443, 8443},
+		{1023, 9023},
+		// Unprivileged: the same number on both sides
+		{1024, 1024},
+		{3000, 3000},
+	}
+	for _, tt := range tests {
+		check(t, fmt.Sprintf("LocalPortFor(%d)", tt.remote), LocalPortFor(tt.remote), tt.want)
+	}
+}

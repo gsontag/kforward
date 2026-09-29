@@ -35,3 +35,9 @@ var (
 	}
 	msgDefaultNS = &i18n.Message{ID: "EditorDefaultNamespace", Other: "Default of the context"}
 )
+
+// The English texts of the suggestions.
+var (
+	msgSuggestions  = &i18n.Message{ID: "EditorSuggestions", Other: "Choose from the cluster"}
+	msgNoSuggestion = &i18n.Message{ID: "EditorNoSuggestion", Other: "Nothing found in the cluster"}
+)

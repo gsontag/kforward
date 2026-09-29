@@ -188,3 +188,13 @@ func portChoices(ports []kube.Port) []Choice {
 	}
 	return choices
 }
+
+// LocalPortFor proposes a local port for a remote one: the same number, the
+// most common forward, unless it is privileged. Below 1024 only root may
+// listen, so 80 becomes 8080 and 443 becomes 8443, as usual.
+func LocalPortFor(remote int32) int32 {
+	if remote < 1024 {
+		return remote + 8000
+	}
+	return remote
+}

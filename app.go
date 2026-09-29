@@ -183,10 +183,21 @@ func (a *app) edit(uuid string) {
 		form = editor.FromForward(a.manager.Snapshot()[i].Forward)
 	}
 	var contexts []string
+	// A nil interface, not an interface holding a nil client: no suggestions
+	var src editor.Source
 	if a.client != nil {
 		contexts = a.client.Contexts()
+		src = editor.ClusterSource{Client: a.client}
 	}
-	gui.OpenEditor(a.window, a.tr, form, contexts, gui.Actions{Save: a.save, Delete: a.remove})
+	gui.OpenEditor(
+		a.window,
+		a.tr,
+		form,
+		contexts,
+		src,
+		post,
+		gui.Actions{Save: a.save, Delete: a.remove},
+	)
 }
 
 func (a *app) save(f config.Forward) error {
