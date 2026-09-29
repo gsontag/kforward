@@ -81,6 +81,9 @@ func (a *app) activate() {
 	a.gtk.Hold()
 
 	a.logPath = setupLog()
+
+	slog.Info("start", "version", version())
+
 	a.autostart = newAutostart()
 
 	forwards := a.load()

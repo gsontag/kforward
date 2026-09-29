@@ -28,8 +28,12 @@ func main() {
 		"run the named forward in the foreground until interrupted",
 	)
 	background := flag.Bool("background", false, "start in the tray, without opening the window")
+	showVersion := flag.Bool("version", false, "print the version and exit")
 	flag.Parse()
 	switch {
+	case *showVersion:
+		fmt.Println("kforward", version())
+		return
 	case *check:
 		os.Exit(runCheck())
 	case *forward != "":
