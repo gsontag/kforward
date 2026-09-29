@@ -17,17 +17,18 @@ const (
 // Sender shows notifications through the freedesktop notification service,
 // which every desktop provides. It is used from the UI thread only.
 type Sender struct {
-	appName string
-	icon    string
-	conn    *dbus.Conn
+	appName      string
+	desktopEntry string
+	icon         string
+	conn         *dbus.Conn
 	// ids of the notifications shown, by key, to replace them
 	ids map[string]uint32
 }
 
 // NewSender connects to the session bus; without one, notifications are
-// only logged.
-func NewSender(appName, icon string) *Sender {
-	s := &Sender{appName: appName, icon: icon, ids: map[string]uint32{}}
+// only logged. desktopEntry names the .desktop file of the application.
+func NewSender(appName, desktopEntry, icon string) *Sender {
+	s := &Sender{appName: appName, desktopEntry: desktopEntry, icon: icon, ids: map[string]uint32{}}
 	conn, err := dbus.ConnectSessionBus()
 	if err != nil {
 		slog.Warn("notifications disabled", "err", err)
@@ -48,9 +49,10 @@ func (s *Sender) Send(n Notification) {
 	defer cancel()
 
 	var id uint32
+	hints := map[string]dbus.Variant{"desktop-entry": dbus.MakeVariant(s.desktopEntry)}
 	err := s.conn.Object(service, path).
 		CallWithContext(ctx, service+".Notify", 0, s.appName, s.ids[n.Key],
-			s.icon, n.Summary, n.Body, []string{}, map[string]dbus.Variant{}, int32(-1)).
+			s.icon, n.Summary, n.Body, []string{}, hints, int32(-1)).
 		Store(&id)
 	if err != nil {
 		slog.Warn("notification", "summary", n.Summary, "err", err)

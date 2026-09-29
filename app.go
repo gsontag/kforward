@@ -86,7 +86,7 @@ func (a *app) activate() {
 	a.watchConfig()
 
 	a.tracker = notify.NewTracker(a.tr)
-	a.sender = notify.NewSender("Kube Forwarder", "network-error-symbolic")
+	a.sender = notify.NewSender("Kube Forwarder", appID, "network-error-symbolic")
 
 	start, end := systray.RunWithExternalLoop(a.tray.Refresh, nil)
 	start()

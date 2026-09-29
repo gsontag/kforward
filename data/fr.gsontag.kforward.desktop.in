@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Kube Forwarder
+Comment=Keep kubectl port-forwards running from the tray
+Comment[fr]=Garder des port-forwards kubectl actifs depuis la barre d'état
+Exec=@BINDIR@/kforward
+Icon=fr.gsontag.kforward
+Terminal=false
+Categories=Development;
+Keywords=kubernetes;kubectl;port-forward;
+StartupNotify=true
+SingleMainWindow=true

@@ -1,3 +1,11 @@
+APP_ID=fr.gsontag.kforward
+
+# Installation for the current user: no root needed
+PREFIX?=$(HOME)/.local
+BINDIR=$(PREFIX)/bin
+APPDIR=$(PREFIX)/share/applications
+ICONDIR=$(PREFIX)/share/icons/hicolor/scalable/apps
+
 GOCMD=go
 LINTCMD=golangci-lint
 GOLANGCI_VERSION?=v2.14.0
@@ -85,6 +93,17 @@ clean: ## cleans binary and other generated files
 build: ## Build binary
 		$(GOCMD) build -o out/$(BINARY_NAME) .
 
+## Install
+install: build ## installs the application for the current user, in PREFIX
+		install -Dm755 out/$(BINARY_NAME) $(BINDIR)/$(BINARY_NAME)
+		install -Dm644 data/$(APP_ID).svg $(ICONDIR)/$(APP_ID).svg
+		install -d $(APPDIR)
+		sed 's|@BINDIR@|$(BINDIR)|' data/$(APP_ID).desktop.in > $(APPDIR)/$(APP_ID).desktop
+		chmod 644 $(APPDIR)/$(APP_ID).desktop
+
+uninstall: ## removes what install added
+		rm -f $(BINDIR)/$(BINARY_NAME) $(ICONDIR)/$(APP_ID).svg $(APPDIR)/$(APP_ID).desktop
+
 ## Test
 # GTK packages build for minutes with -race: kept out of the unit tests
 TEST_PKGS=$(shell $(GOCMD) list ./internal/... | grep -v /internal/gui)
@@ -96,7 +115,7 @@ coverage: test ## displays test coverage report in html code
 		$(GOCMD) tool cover -html=coverage.out
 
 .PHONY: install-tools check-quality lint lint-fix lint-config vet fmt fmt-check tidy tidy-check \
-	clean build test coverage all help it-cluster it-clean it
+	clean build test coverage all help it-cluster it-clean it install uninstall
 
 ## Integration tests
 it-cluster: ## creates the kind cluster of the integration tests, if needed

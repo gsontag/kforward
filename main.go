@@ -11,6 +11,10 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 )
 
+// appID names the application for GTK and the desktop: the .desktop file and
+// the icon in data/ are named after it.
+const appID = "fr.gsontag.kforward"
+
 func main() {
 	check := flag.Bool("check", false, "check the configuration against the kubeconfig and exit")
 	forward := flag.String(
@@ -25,7 +29,7 @@ func main() {
 	case *forward != "":
 		os.Exit(runForward(*forward))
 	}
-	application := gtk.NewApplication("fr.gsontag.kforward", gio.ApplicationDefaultFlags)
+	application := gtk.NewApplication(appID, gio.ApplicationDefaultFlags)
 	a := &app{gtk: application}
 	application.ConnectActivate(a.activate)
 	application.ConnectShutdown(a.shutdown)
