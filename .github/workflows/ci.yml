@@ -24,6 +24,9 @@ jobs:
             ca-certificates git make gcc libc6-dev pkg-config \
             libgtk-4-dev libgirepository1.0-dev
       - uses: actions/checkout@v7
+      # The container runs as root, the checkout belongs to the runner user:
+      # git refuses such a repository, which go build asks for the version
+      - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
