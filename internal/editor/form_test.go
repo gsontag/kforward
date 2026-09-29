@@ -7,8 +7,8 @@ import (
 
 	"k8s.io/apimachinery/pkg/util/intstr"
 
-	"gsontag.fr/kforward/internal/config"
-	"gsontag.fr/kforward/internal/locale"
+	"github.com/gsontag/kforward/internal/config"
+	"github.com/gsontag/kforward/internal/locale"
 )
 
 // English, whatever the language of the machine running the tests

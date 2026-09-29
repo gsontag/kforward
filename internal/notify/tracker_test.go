@@ -6,10 +6,10 @@ import (
 	"strings"
 	"testing"
 
-	"gsontag.fr/kforward/internal/config"
-	"gsontag.fr/kforward/internal/forward"
-	"gsontag.fr/kforward/internal/locale"
-	"gsontag.fr/kforward/internal/manager"
+	"github.com/gsontag/kforward/internal/config"
+	"github.com/gsontag/kforward/internal/forward"
+	"github.com/gsontag/kforward/internal/locale"
+	"github.com/gsontag/kforward/internal/manager"
 )
 
 // English, whatever the language of the machine running the tests

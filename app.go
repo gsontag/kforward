@@ -12,16 +12,16 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gio/v2"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
-	"gsontag.fr/kforward/internal/autostart"
-	"gsontag.fr/kforward/internal/config"
-	"gsontag.fr/kforward/internal/editor"
-	"gsontag.fr/kforward/internal/forward"
-	"gsontag.fr/kforward/internal/gui"
-	"gsontag.fr/kforward/internal/kube"
-	"gsontag.fr/kforward/internal/locale"
-	"gsontag.fr/kforward/internal/manager"
-	"gsontag.fr/kforward/internal/notify"
-	"gsontag.fr/kforward/internal/tray"
+	"github.com/gsontag/kforward/internal/autostart"
+	"github.com/gsontag/kforward/internal/config"
+	"github.com/gsontag/kforward/internal/editor"
+	"github.com/gsontag/kforward/internal/forward"
+	"github.com/gsontag/kforward/internal/gui"
+	"github.com/gsontag/kforward/internal/kube"
+	"github.com/gsontag/kforward/internal/locale"
+	"github.com/gsontag/kforward/internal/manager"
+	"github.com/gsontag/kforward/internal/notify"
+	"github.com/gsontag/kforward/internal/tray"
 )
 
 // app ties the forwards manager to the tray, on the GTK main loop: every

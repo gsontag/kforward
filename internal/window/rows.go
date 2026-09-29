@@ -2,9 +2,9 @@
 package window
 
 import (
-	"gsontag.fr/kforward/internal/forward"
-	"gsontag.fr/kforward/internal/locale"
-	"gsontag.fr/kforward/internal/manager"
+	"github.com/gsontag/kforward/internal/forward"
+	"github.com/gsontag/kforward/internal/locale"
+	"github.com/gsontag/kforward/internal/manager"
 )
 
 // Row is what the window shows of one forward: plain data, like tray.Item.

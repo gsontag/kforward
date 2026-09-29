@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"time"
 
-	"gsontag.fr/kforward/internal/kube"
+	"github.com/gsontag/kforward/internal/kube"
 )
 
 // Source answers the questions of the Suggester, by querying the cluster of

@@ -3,8 +3,8 @@ package gui
 import (
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
-	"gsontag.fr/kforward/internal/editor"
-	"gsontag.fr/kforward/internal/locale"
+	"github.com/gsontag/kforward/internal/editor"
+	"github.com/gsontag/kforward/internal/locale"
 )
 
 // suggestions is the button next to a field that lists what the cluster

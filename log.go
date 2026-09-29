@@ -7,7 +7,7 @@ import (
 	"github.com/adrg/xdg"
 	"k8s.io/klog/v2"
 
-	"gsontag.fr/kforward/internal/logfile"
+	"github.com/gsontag/kforward/internal/logfile"
 )
 
 // maxLogSize bounds the log file: a tray application runs for weeks.

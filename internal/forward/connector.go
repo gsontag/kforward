@@ -10,8 +10,8 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
-	"gsontag.fr/kforward/internal/config"
-	"gsontag.fr/kforward/internal/kube"
+	"github.com/gsontag/kforward/internal/config"
+	"github.com/gsontag/kforward/internal/kube"
 )
 
 // ClusterConnector connects a configured forward through its Kubernetes cluster.

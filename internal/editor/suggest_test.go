@@ -11,7 +11,7 @@ import (
 	"testing/synctest"
 	"time"
 
-	"gsontag.fr/kforward/internal/kube"
+	"github.com/gsontag/kforward/internal/kube"
 )
 
 // fakeSource answers after a delay, per question; it records the questions

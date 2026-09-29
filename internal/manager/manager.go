@@ -10,8 +10,8 @@ import (
 	"slices"
 	"sync"
 
-	"gsontag.fr/kforward/internal/config"
-	"gsontag.fr/kforward/internal/forward"
+	"github.com/gsontag/kforward/internal/config"
+	"github.com/gsontag/kforward/internal/forward"
 )
 
 // ConnectorFactory builds the connector of a configured forward.

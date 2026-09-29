@@ -13,9 +13,9 @@ import (
 
 	"k8s.io/apimachinery/pkg/util/intstr"
 
-	"gsontag.fr/kforward/internal/config"
-	"gsontag.fr/kforward/internal/forward"
-	"gsontag.fr/kforward/internal/kube"
+	"github.com/gsontag/kforward/internal/config"
+	"github.com/gsontag/kforward/internal/forward"
+	"github.com/gsontag/kforward/internal/kube"
 )
 
 // portRelease is how long a fake forward keeps its local port after being

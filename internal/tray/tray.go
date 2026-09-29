@@ -8,8 +8,8 @@ import (
 
 	"fyne.io/systray"
 
-	"gsontag.fr/kforward/internal/icon"
-	"gsontag.fr/kforward/internal/locale"
+	"github.com/gsontag/kforward/internal/icon"
+	"github.com/gsontag/kforward/internal/locale"
 )
 
 // iconSize is the side of the drawn icon: large enough for HiDPI panels,

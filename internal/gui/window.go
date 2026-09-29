@@ -9,9 +9,9 @@ import (
 
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
-	"gsontag.fr/kforward/internal/locale"
-	"gsontag.fr/kforward/internal/manager"
-	"gsontag.fr/kforward/internal/window"
+	"github.com/gsontag/kforward/internal/locale"
+	"github.com/gsontag/kforward/internal/manager"
+	"github.com/gsontag/kforward/internal/window"
 )
 
 // Source provides what the window shows: the forwards and the configuration

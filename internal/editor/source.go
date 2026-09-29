@@ -3,7 +3,7 @@ package editor
 import (
 	"context"
 
-	"gsontag.fr/kforward/internal/kube"
+	"github.com/gsontag/kforward/internal/kube"
 )
 
 // ClusterSource answers the suggestions from the clusters of a kubeconfig.

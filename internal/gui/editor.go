@@ -6,9 +6,9 @@ import (
 
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
-	"gsontag.fr/kforward/internal/config"
-	"gsontag.fr/kforward/internal/editor"
-	"gsontag.fr/kforward/internal/locale"
+	"github.com/gsontag/kforward/internal/config"
+	"github.com/gsontag/kforward/internal/editor"
+	"github.com/gsontag/kforward/internal/locale"
 )
 
 // Actions are what the edit dialog asks the application to do; their errors

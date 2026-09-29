@@ -14,7 +14,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
-	"gsontag.fr/kforward/internal/kube"
+	"github.com/gsontag/kforward/internal/kube"
 )
 
 // itEnv is the cluster shared by the integration tests of the package.

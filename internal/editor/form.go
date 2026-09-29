@@ -11,9 +11,9 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/util/validation"
 
-	"gsontag.fr/kforward/internal/config"
-	"gsontag.fr/kforward/internal/kube"
-	"gsontag.fr/kforward/internal/locale"
+	"github.com/gsontag/kforward/internal/config"
+	"github.com/gsontag/kforward/internal/kube"
+	"github.com/gsontag/kforward/internal/locale"
 )
 
 // Field names a field of the form, to show its problem next to it.

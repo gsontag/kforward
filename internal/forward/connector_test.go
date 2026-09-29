@@ -17,8 +17,8 @@ import (
 	"k8s.io/client-go/kubernetes/fake"
 	k8stesting "k8s.io/client-go/testing"
 
-	"gsontag.fr/kforward/internal/config"
-	"gsontag.fr/kforward/internal/kube"
+	"github.com/gsontag/kforward/internal/config"
+	"github.com/gsontag/kforward/internal/kube"
 )
 
 func TestClassify(t *testing.T) {

@@ -7,8 +7,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	"gsontag.fr/kforward/internal/config"
-	"gsontag.fr/kforward/internal/forward"
+	"github.com/gsontag/kforward/internal/config"
+	"github.com/gsontag/kforward/internal/forward"
 )
 
 // runForward runs the named forward in the foreground, reconnecting it when

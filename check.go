@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"os"
 
-	"gsontag.fr/kforward/internal/config"
-	"gsontag.fr/kforward/internal/forward"
-	"gsontag.fr/kforward/internal/kube"
+	"github.com/gsontag/kforward/internal/config"
+	"github.com/gsontag/kforward/internal/forward"
+	"github.com/gsontag/kforward/internal/kube"
 )
 
 // runCheck validates the configuration against the kubeconfig, without

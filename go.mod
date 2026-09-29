@@ -1,4 +1,4 @@
-module gsontag.fr/kforward
+module github.com/gsontag/kforward
 
 go 1.27.1
 

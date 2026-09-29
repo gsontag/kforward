@@ -10,7 +10,7 @@ import (
 	"testing/synctest"
 	"time"
 
-	"gsontag.fr/kforward/internal/kube"
+	"github.com/gsontag/kforward/internal/kube"
 )
 
 // step scripts one connection attempt of the fake connector.

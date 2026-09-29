@@ -5,7 +5,7 @@ import (
 	"errors"
 	"time"
 
-	"gsontag.fr/kforward/internal/kube"
+	"github.com/gsontag/kforward/internal/kube"
 )
 
 var errUnexpectedEnd = errors.New("forward ended unexpectedly")

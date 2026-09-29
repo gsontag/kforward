@@ -7,7 +7,7 @@ import (
 	"github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/gio/v2"
 
-	"gsontag.fr/kforward/internal/config"
+	"github.com/gsontag/kforward/internal/config"
 )
 
 // reloadDelay lets an editor finish writing: several events come for a save.

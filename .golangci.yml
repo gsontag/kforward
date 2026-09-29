@@ -48,7 +48,7 @@ formatters:
     - gofumpt
   settings:
     gofumpt:
-      module-path: gsontag.fr/kforward
+      module-path: github.com/gsontag/kforward
       extra:
         group-params: true
         balance-calls: true
@@ -59,4 +59,4 @@ formatters:
       tab-len: 4
     goimports:
       local-prefixes:
-        - gsontag.fr/kforward
+        - github.com/gsontag/kforward

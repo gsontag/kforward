@@ -15,9 +15,9 @@ import (
 
 	"k8s.io/apimachinery/pkg/util/intstr"
 
-	"gsontag.fr/kforward/internal/config"
-	"gsontag.fr/kforward/internal/forward"
-	"gsontag.fr/kforward/internal/kube"
+	"github.com/gsontag/kforward/internal/config"
+	"github.com/gsontag/kforward/internal/forward"
+	"github.com/gsontag/kforward/internal/kube"
 )
 
 // stateTimeout bounds each wait for a status: a pod start or a reconnection

@@ -5,7 +5,7 @@ package forward
 import (
 	"errors"
 
-	"gsontag.fr/kforward/internal/kube"
+	"github.com/gsontag/kforward/internal/kube"
 )
 
 // State is the lifecycle stage of a forward.
