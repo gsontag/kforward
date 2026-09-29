@@ -2,7 +2,7 @@ package notify
 
 import (
 	"context"
-	"log"
+	"log/slog"
 	"time"
 
 	"github.com/godbus/dbus/v5"
@@ -30,7 +30,7 @@ func NewSender(appName, icon string) *Sender {
 	s := &Sender{appName: appName, icon: icon, ids: map[string]uint32{}}
 	conn, err := dbus.ConnectSessionBus()
 	if err != nil {
-		log.Printf("notifications: %v", err)
+		slog.Warn("notifications disabled", "err", err)
 		return s
 	}
 	s.conn = conn
@@ -40,7 +40,7 @@ func NewSender(appName, icon string) *Sender {
 // Send shows n, replacing the previous notification with the same key.
 func (s *Sender) Send(n Notification) {
 	if s.conn == nil {
-		log.Printf("%s: %s", n.Summary, n.Body)
+		slog.Info("notification", "summary", n.Summary, "body", n.Body)
 		return
 	}
 	// A notification service that hangs must not freeze the application
@@ -53,7 +53,7 @@ func (s *Sender) Send(n Notification) {
 			s.icon, n.Summary, n.Body, []string{}, map[string]dbus.Variant{}, int32(-1)).
 		Store(&id)
 	if err != nil {
-		log.Printf("notification %q: %v", n.Summary, err)
+		slog.Warn("notification", "summary", n.Summary, "err", err)
 		return
 	}
 	s.ids[n.Key] = id

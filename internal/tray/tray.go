@@ -1,7 +1,7 @@
 package tray
 
 import (
-	"log"
+	"log/slog"
 	"strconv"
 	"strings"
 	"sync/atomic"
@@ -180,7 +180,7 @@ func (t *Tray) showIcon(s Summary) {
 	if !ok {
 		var err error
 		if png, err = icon.Render(iconSize, s.Active, s.Busy); err != nil {
-			log.Printf("tray icon: %v", err)
+			slog.Warn("tray icon", "err", err)
 			return
 		}
 		t.icons[s] = png

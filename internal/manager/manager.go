@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"slices"
 	"sync"
 
@@ -29,6 +30,7 @@ var ErrUnknownForward = errors.New("unknown forward")
 type Manager struct {
 	newConnector ConnectorFactory
 	policy       forward.Policy
+	logger       *slog.Logger
 	onChange     func()
 
 	mu      sync.Mutex
@@ -60,9 +62,15 @@ type connectionSettings struct {
 }
 
 // New returns a manager without forwards: call Load. onChange is called,
-// from any goroutine, after every change visible in Snapshot.
-func New(newConnector ConnectorFactory, policy forward.Policy, onChange func()) *Manager {
-	return &Manager{newConnector: newConnector, policy: policy, onChange: onChange}
+// from any goroutine, after every change visible in Snapshot; logger records
+// the changes of state.
+func New(
+	newConnector ConnectorFactory,
+	policy forward.Policy,
+	logger *slog.Logger,
+	onChange func(),
+) *Manager {
+	return &Manager{newConnector: newConnector, policy: policy, logger: logger, onChange: onChange}
 }
 
 // Load applies a configuration. Forwards whose connection settings are
@@ -189,6 +197,7 @@ func (m *Manager) startLocked(e *entry) {
 	connector, err := m.newConnector(e.forward)
 	if err != nil {
 		e.status = forward.Status{State: forward.Failed, Err: err}
+		m.log(e.forward, e.status)
 		return
 	}
 
@@ -217,6 +226,7 @@ func (m *Manager) stopLocked(e *entry) {
 	// Stopped at once from the user's point of view; the reports of the
 	// cancelled run are ignored from now on
 	e.status = forward.Status{State: forward.Stopped}
+	m.log(e.forward, e.status)
 }
 
 func (m *Manager) report(e *entry, r *run, s forward.Status) {
@@ -226,10 +236,28 @@ func (m *Manager) report(e *entry, r *run, s forward.Status) {
 		return
 	}
 	e.status = s
+	m.log(e.forward, s)
 	if s.State == forward.Failed {
 		// Run has given up: the forward is no longer wanted
 		e.run = nil
 	}
 	m.mu.Unlock()
 	m.onChange()
+}
+
+// log records a change of state: the history the user reads in the log file.
+func (m *Manager) log(f config.Forward, s forward.Status) {
+	attrs := []any{"forward", f.Name, "state", s.State.String()}
+	if s.State == forward.Active {
+		attrs = append(attrs, "pod", s.Endpoint.Pod, "port", s.Endpoint.Port)
+	}
+	if s.Failures > 0 {
+		attrs = append(attrs, "failures", s.Failures)
+	}
+	level := slog.LevelInfo
+	if s.Err != nil {
+		attrs = append(attrs, "err", s.Err)
+		level = slog.LevelWarn
+	}
+	m.logger.Log(context.Background(), level, "forward state", attrs...)
 }

@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"log"
+	"log/slog"
 
 	"github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/gio/v2"
@@ -24,7 +24,7 @@ func (a *app) watchConfig() {
 	monitor, err := gio.NewFileForPath(a.path).
 		MonitorFile(context.Background(), gio.FileMonitorWatchMoves)
 	if err != nil {
-		log.Printf("watch %s: %v", a.path, err)
+		slog.Warn("watch config", "path", a.path, "err", err)
 		return
 	}
 	// Kept in the app: a monitor collected by the GC stops watching

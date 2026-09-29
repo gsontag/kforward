@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"strings"
 	"sync"
 	"testing"
@@ -126,11 +127,17 @@ func autoStarted(f config.Forward) config.Forward {
 // onChange, and closes the manager at the end of the test.
 func newManager(t *testing.T) (*Manager, *cluster, func() int) {
 	t.Helper()
+	return newManagerLogging(t, slog.New(slog.DiscardHandler))
+}
+
+// newManagerLogging is newManager, with the log sent to logger.
+func newManagerLogging(t *testing.T, logger *slog.Logger) (*Manager, *cluster, func() int) {
+	t.Helper()
 	c := newCluster()
 	var mu sync.Mutex
 	changes := 0
 	var m *Manager
-	m = New(c.factory, forward.DefaultPolicy, func() {
+	m = New(c.factory, forward.DefaultPolicy, logger, func() {
 		// Reading the state from onChange, as the UI will: must not deadlock
 		_ = m.Snapshot()
 		mu.Lock()

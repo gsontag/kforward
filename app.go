@@ -2,7 +2,7 @@ package main
 
 import (
 	"errors"
-	"log"
+	"log/slog"
 	"slices"
 	"strings"
 	"sync/atomic"
@@ -50,6 +50,9 @@ type app struct {
 	sender  *notify.Sender
 	// notifyPending coalesces the checks for notifications, like tray.Refresh
 	notifyPending atomic.Bool
+
+	// logPath is the log file, empty when the log only goes to stderr
+	logPath string
 }
 
 // errUnreadable refuses to save over a configuration file that could not be
@@ -71,12 +74,14 @@ func (a *app) activate() {
 	// Without a window, the application would quit at once
 	a.gtk.Hold()
 
+	a.logPath = setupLog()
+
 	forwards := a.load()
 
 	a.tr = locale.FromEnvironment()
 	a.tray = tray.New(a.tr, a.trayState, post, a.handle)
 	a.window = gui.New(a.gtk, a.tr, a.windowState, post, a.toggle, a.edit)
-	a.manager = manager.New(a.connector, forward.DefaultPolicy, a.refresh)
+	a.manager = manager.New(a.connector, forward.DefaultPolicy, slog.Default(), a.refresh)
 	a.manager.Load(forwards)
 	a.watchConfig()
 
@@ -195,10 +200,12 @@ func (a *app) handle(it tray.Item) {
 		a.gtk.Quit()
 	case tray.ShowWindow:
 		a.window.Show()
+	case tray.OpenLog:
+		err = gio.AppInfoLaunchDefaultForURI(gio.NewFileForPath(a.logPath).URI(), nil)
 	case tray.None:
 	}
 	if err != nil {
-		log.Printf("%s: %v", it.Text, err)
+		slog.Warn("menu action", "item", it.Text, "err", err)
 	}
 }
 
@@ -221,7 +228,7 @@ func (a *app) toggle(uuid string, on bool) {
 		err = a.manager.Stop(uuid)
 	}
 	if err != nil {
-		log.Printf("%s: %v", uuid, err)
+		slog.Warn("switch", "uuid", uuid, "err", err)
 	}
 }
 

@@ -32,6 +32,7 @@ const (
 	EditConfig
 	Quit
 	ShowWindow
+	OpenLog
 )
 
 // Action is the operation of a click, with its argument.
@@ -98,6 +99,7 @@ func Build(entries []manager.Entry, problem string, tr *locale.Translator) []Ite
 		Item{Kind: Separator},
 		Item{Kind: Button, Text: tr.T(msgShowWindow, nil), Action: Action{Op: ShowWindow}},
 		Item{Kind: Button, Text: tr.T(msgEdit, nil), Action: Action{Op: EditConfig}},
+		Item{Kind: Button, Text: tr.T(msgOpenLog, nil), Action: Action{Op: OpenLog}},
 		Item{Kind: Separator},
 		Item{Kind: Button, Text: tr.T(msgQuit, nil), Action: Action{Op: Quit}},
 	)

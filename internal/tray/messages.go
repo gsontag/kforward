@@ -31,4 +31,5 @@ var (
 		One: "{{.Count}} active forward", Other: "{{.Count}} active forwards",
 	}
 	msgShowWindow = &i18n.Message{ID: "TrayShowWindow", Other: "Open window…"}
+	msgOpenLog    = &i18n.Message{ID: "TrayOpenLog", Other: "Open log…"}
 )

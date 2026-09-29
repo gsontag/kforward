@@ -3,6 +3,7 @@ package tray
 import (
 	"errors"
 	"fmt"
+	"log/slog"
 	"reflect"
 	"strings"
 	"testing"
@@ -225,9 +226,9 @@ func TestBuildFooter(t *testing.T) {
 		ops = append(ops, fmt.Sprintf("%d:%d", it.Kind, it.Action.Op))
 	}
 	got := strings.Join(ops, " ")
-	want := fmt.Sprintf("%d:%d %d:%d %d:%d %d:%d %d:%d %d:%d %d:%d %d:%d",
+	want := fmt.Sprintf("%d:%d %d:%d %d:%d %d:%d %d:%d %d:%d %d:%d %d:%d %d:%d",
 		Toggle, ToggleForward, Separator, None, Button, StopAll, Separator, None,
-		Button, ShowWindow, Button, EditConfig, Separator, None, Button, Quit)
+		Button, ShowWindow, Button, EditConfig, Button, OpenLog, Separator, None, Button, Quit)
 	check(t, "kinds and operations", got, want)
 }
 
@@ -267,7 +268,7 @@ func check[T comparable](t *testing.T, name string, got, want T) {
 // A group split in the file shows once: the manager sorts the entries.
 func TestSplitGroupShownOnce(t *testing.T) {
 	// No forward is started: the factory is never called
-	m := manager.New(nil, forward.DefaultPolicy, func() {})
+	m := manager.New(nil, forward.DefaultPolicy, slog.New(slog.DiscardHandler), func() {})
 	m.Load([]config.Forward{
 		{UUID: "a", Name: "a", Group: "db"},
 		{UUID: "b", Name: "b", Group: "web"},
@@ -290,7 +291,7 @@ func TestBuildInFrench(t *testing.T) {
 		}
 	}
 	want := "db | b  :3000 — connexion… | Autres | a  :3000 — échec | " +
-		"Tout arrêter | Ouvrir la fenêtre… | Modifier la configuration… | Quitter"
+		"Tout arrêter | Ouvrir la fenêtre… | Modifier la configuration… | Ouvrir le journal… | Quitter"
 	check(t, "texts", strings.Join(texts, " | "), want)
 }
 

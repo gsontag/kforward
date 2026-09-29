@@ -146,6 +146,10 @@ other = "{{.Target}} → localhost:{{.Port}}"
 hash = "sha1-052269b2c823a67547b0bb8b6117c8df28d9e78e"
 other = "Ouvrir dans le navigateur"
 
+[TrayOpenLog]
+hash = "sha1-a83e5fa27a79f339cb51087db68c4953780e1f8d"
+other = "Ouvrir le journal…"
+
 [TrayProblem]
 hash = "sha1-c32734f0831e29e80b0071cd67a6dbf939ea631d"
 other = "⚠ {{.Problem}}"
