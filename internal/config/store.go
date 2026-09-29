@@ -24,6 +24,9 @@ type Store struct {
 	mu     sync.RWMutex
 	path   string
 	config *Config
+	// raw is the content last read or written: a reload of the same content
+	// changes nothing
+	raw []byte
 }
 
 // DefaultPath returns the XDG path of the configuration file,
@@ -45,42 +48,43 @@ func NewStore(path string) *Store {
 // Load reads and validates the configuration file. A missing or empty file
 // yields the default configuration. On error, the previous configuration is kept.
 func (s *Store) Load() error {
-	cfg, err := readConfig(s.path)
+	cfg, raw, err := readConfig(s.path)
 	if err != nil {
 		return err
 	}
 	s.mu.Lock()
-	s.config = cfg
+	s.config, s.raw = cfg, raw
 	s.mu.Unlock()
 	return nil
 }
 
-func readConfig(path string) (*Config, error) {
+// readConfig returns the configuration of the file, and its raw content.
+func readConfig(path string) (*Config, []byte, error) {
 	buf, err := os.ReadFile(path)
 	if errors.Is(err, fs.ErrNotExist) {
-		return DefaultConfig(), nil
+		return DefaultConfig(), nil, nil
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("read config: %w", err)
+		return nil, nil, fmt.Errorf("read config: %w", err)
 	}
 	if len(bytes.TrimSpace(buf)) == 0 {
-		return DefaultConfig(), nil
+		return DefaultConfig(), buf, nil
 	}
 
 	var cfg Config
 	if err := json.Unmarshal(buf, &cfg); err != nil {
-		return nil, fmt.Errorf("parse %s: %w", path, err)
+		return nil, nil, fmt.Errorf("parse %s: %w", path, err)
 	}
 
 	if err := cfg.Validate(); err != nil {
-		return nil, fmt.Errorf("invalid %s: %w", path, err)
+		return nil, nil, fmt.Errorf("invalid %s: %w", path, err)
 	}
 
 	if cfg.Forwards == nil {
 		cfg.Forwards = []Forward{}
 	}
-	return &cfg, nil
+	return &cfg, buf, nil
 }
 
 // Kubeconfig returns the configured kubeconfig path.
@@ -115,10 +119,11 @@ func (s *Store) commitLocked(next *Config) error {
 	// A copy of Config shares its slice with the current one: sort a copy
 	next.Forwards = slices.Clone(next.Forwards)
 	Sort(next.Forwards)
-	if err := writeConfig(s.path, next); err != nil {
+	raw, err := writeConfig(s.path, next)
+	if err != nil {
 		return err
 	}
-	s.config = next
+	s.config, s.raw = next, raw
 	return nil
 }
 
@@ -162,40 +167,66 @@ func (s *Store) DeleteForward(id string) error {
 	return s.commitLocked(&next)
 }
 
-func writeConfig(path string, cfg *Config) error {
+// writeConfig writes cfg atomically and returns the content written.
+func writeConfig(path string, cfg *Config) ([]byte, error) {
 	if err := cfg.Validate(); err != nil {
-		return fmt.Errorf("refusing to save invalid config: %w", err)
+		return nil, fmt.Errorf("refusing to save invalid config: %w", err)
 	}
 
 	data, err := json.MarshalIndent(cfg, "", "  ")
 	if err != nil {
-		return fmt.Errorf("encode config: %w", err)
+		return nil, fmt.Errorf("encode config: %w", err)
 	}
 	data = append(data, '\n')
 
 	dir := filepath.Dir(path)
 	if err := os.MkdirAll(dir, 0o755); err != nil {
-		return fmt.Errorf("create config dir: %w", err)
+		return nil, fmt.Errorf("create config dir: %w", err)
 	}
 	tmp, err := os.CreateTemp(dir, ".config-*.json")
 	if err != nil {
-		return fmt.Errorf("create temp file: %w", err)
+		return nil, fmt.Errorf("create temp file: %w", err)
 	}
 	defer func() { _ = os.Remove(tmp.Name()) }()
 
 	if _, err := tmp.Write(data); err != nil {
 		_ = tmp.Close()
-		return fmt.Errorf("write config: %w", err)
+		return nil, fmt.Errorf("write config: %w", err)
 	}
 	if err := tmp.Sync(); err != nil {
 		_ = tmp.Close()
-		return fmt.Errorf("sync config: %w", err)
+		return nil, fmt.Errorf("sync config: %w", err)
 	}
 	if err := tmp.Close(); err != nil {
-		return fmt.Errorf("close config: %w", err)
+		return nil, fmt.Errorf("close config: %w", err)
 	}
 	if err := os.Rename(tmp.Name(), path); err != nil {
-		return fmt.Errorf("replace config: %w", err)
+		return nil, fmt.Errorf("replace config: %w", err)
 	}
-	return nil
+	return data, nil
+}
+
+// ErrRemoved is returned by Reload when the file no longer exists.
+var ErrRemoved = errors.New("configuration file removed")
+
+// Reload reads the file again, like Load, and reports whether its content
+// changed since it was last read or written: the saves of the store itself,
+// and editors touching the file, change nothing. Unlike Load, a missing file
+// is an error: the current configuration is kept rather than emptied.
+func (s *Store) Reload() (changed bool, err error) {
+	if _, err := os.Stat(s.path); errors.Is(err, fs.ErrNotExist) {
+		return false, fmt.Errorf("%s: %w", s.path, ErrRemoved)
+	}
+	cfg, raw, err := readConfig(s.path)
+	if err != nil {
+		return false, err
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if bytes.Equal(raw, s.raw) {
+		return false, nil
+	}
+	s.config, s.raw = cfg, raw
+	return true, nil
 }

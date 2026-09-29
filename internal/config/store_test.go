@@ -180,7 +180,7 @@ func TestWriteRefusesInvalidConfig(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "config.json")
 	cfg := &Config{Forwards: []Forward{{UUID: "1"}}}
 
-	if err := writeConfig(path, cfg); err == nil {
+	if _, err := writeConfig(path, cfg); err == nil {
 		t.Fatal("writeConfig: got nil error, want a validation error")
 	}
 	if _, err := os.Stat(path); !errors.Is(err, fs.ErrNotExist) {

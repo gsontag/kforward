@@ -27,15 +27,22 @@ type app struct {
 	gtk     *gtk.Application
 	started bool
 	path    string
-	problem string
-	manager *manager.Manager
-	tray    *tray.Tray
-	endTray func()
-	window  *gui.Window
-	tr      *locale.Translator
+	// configProblem and kubeProblem are the errors of the configuration file
+	// and of the kubeconfig, shown in the menu and the window
+	configProblem, kubeProblem string
+	manager                    *manager.Manager
+	tray                       *tray.Tray
+	endTray                    func()
+	window                     *gui.Window
+	tr                         *locale.Translator
 	// store is nil when the file could not be read: saving would replace it
 	store  *config.Store
 	client *kube.Client
+	// kubeconfig is the path client was loaded from
+	kubeconfig string
+
+	monitor     *gio.FileMonitor
+	reloadTimer glib.SourceHandle
 }
 
 // errUnreadable refuses to save over a configuration file that could not be
@@ -57,17 +64,14 @@ func (a *app) activate() {
 	// Without a window, the application would quit at once
 	a.gtk.Hold()
 
-	forwards, problem := a.load()
-	a.problem = problem
+	forwards := a.load()
 
 	a.tr = locale.FromEnvironment()
 	a.tray = tray.New(a.tr, a.trayState, post, a.handle)
 	a.window = gui.New(a.gtk, a.tr, a.windowState, post, a.toggle, a.edit)
-	a.manager = manager.New(connectorFactory(a.client), forward.DefaultPolicy, func() {
-		a.tray.Refresh()
-		a.window.Refresh()
-	})
+	a.manager = manager.New(a.connector, forward.DefaultPolicy, a.refresh)
 	a.manager.Load(forwards)
+	a.watchConfig()
 
 	start, end := systray.RunWithExternalLoop(a.tray.Refresh, nil)
 	start()
@@ -85,40 +89,67 @@ func (a *app) shutdown() {
 
 // load reads the configuration and the kubeconfig. Their errors do not stop
 // the application: they are shown at the top of the menu and in the window.
-func (a *app) load() ([]config.Forward, string) {
+func (a *app) load() []config.Forward {
 	path, err := config.DefaultPath()
 	if err != nil {
-		return nil, err.Error()
+		a.configProblem = err.Error()
+		return nil
 	}
 	a.path = path
 
 	store := config.NewStore(path)
 	if err := store.Load(); err != nil {
-		return nil, err.Error()
+		a.configProblem = err.Error()
+		return nil
 	}
 	a.store = store
-	client, err := kube.NewClient(store.Kubeconfig())
-	if err != nil {
-		return store.Forwards(), err.Error()
-	}
-	a.client = client
-	return store.Forwards(), ""
+	a.loadKubeconfig(store.Kubeconfig())
+
+	return store.Forwards()
 }
 
-// connectorFactory builds the connectors through client; without one, every
-// start fails with the reason.
-func connectorFactory(client *kube.Client) manager.ConnectorFactory {
-	return func(f config.Forward) (forward.Connector, error) {
-		if client == nil {
-			return nil, errors.New("no usable kubeconfig")
-		}
-		c, err := forward.NewClusterConnector(client, f)
-		if err != nil {
-			// A nil *ClusterConnector in a Connector interface would not be nil
-			return nil, err
-		}
-		return c, nil
+// loadKubeconfig loads the kubeconfig at path, unless it is already loaded.
+func (a *app) loadKubeconfig(path string) {
+	if a.client != nil && path == a.kubeconfig {
+		return
 	}
+	client, err := kube.NewClient(path)
+	if err != nil {
+		a.client, a.kubeProblem = nil, err.Error()
+		return
+	}
+	a.client, a.kubeconfig, a.kubeProblem = client, path, ""
+}
+
+// connector builds the connector of f through the current kubeconfig: a
+// forward started after a change of kubeconfig uses the new one.
+func (a *app) connector(f config.Forward) (forward.Connector, error) {
+	if a.client == nil {
+		return nil, errors.New("no usable kubeconfig")
+	}
+	c, err := forward.NewClusterConnector(a.client, f)
+	if err != nil {
+		// A nil *ClusterConnector in a Connector interface would not be nil
+		return nil, err
+	}
+	return c, nil
+}
+
+// refresh updates the tray and the window; safe from any goroutine.
+func (a *app) refresh() {
+	a.tray.Refresh()
+	a.window.Refresh()
+}
+
+// problem is what is wrong with the configuration or the kubeconfig.
+func (a *app) problem() string {
+	var lines []string
+	for _, p := range []string{a.configProblem, a.kubeProblem} {
+		if p != "" {
+			lines = append(lines, p)
+		}
+	}
+	return strings.Join(lines, "\n")
 }
 
 func (a *app) handle(it tray.Item) {
@@ -149,12 +180,12 @@ func (a *app) handle(it tray.Item) {
 
 func (a *app) trayState() ([]manager.Entry, string) {
 	// A menu item has a single line: the first one tells what is wrong
-	line, _, _ := strings.Cut(a.problem, "\n")
+	line, _, _ := strings.Cut(a.problem(), "\n")
 	return a.manager.Snapshot(), line
 }
 
 func (a *app) windowState() ([]manager.Entry, string) {
-	return a.manager.Snapshot(), a.problem
+	return a.manager.Snapshot(), a.problem()
 }
 
 // toggle applies a switch of the window.
