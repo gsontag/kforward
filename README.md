@@ -63,6 +63,22 @@ Use `make install PREFIX=/usr/local` (as root) for a system-wide install,
 and `make uninstall` to remove it. The first build takes a few minutes: the
 GTK bindings are large.
 
+### From a release
+
+Download `kforward-VERSION-linux-amd64.tar.gz` and its `.sha256` file from
+the [releases](https://github.com/gsontag/kforward/releases), then:
+
+```sh
+sha256sum -c kforward-v0.1.0-linux-amd64.tar.gz.sha256
+tar xzf kforward-v0.1.0-linux-amd64.tar.gz
+cd kforward-v0.1.0-linux-amd64
+make install
+```
+
+No Go is needed: the archive holds the program, built on Ubuntu 26.04. It
+runs on distributions with GLib 2.88 or later; on older ones, build it from
+source.
+
 ## Configuration
 
 The forwards are stored in `~/.config/kforward/config.json`. The editor
