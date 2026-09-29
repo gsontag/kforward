@@ -92,8 +92,26 @@ clean: ## cleans binary and other generated files
 build: ## Build binary
 		$(GOCMD) build -o out/$(BINARY_NAME) .
 
+# The inputs of the binary: install rebuilds it when one of them changed. The
+# archive of a release has none, so its make install needs no Go
+GO_INPUTS=$(shell find . \( -path ./out -o -path ./.git \) -prune -o \
+	-type f \( -name '*.go' -o -name '*.toml' -o -name go.mod -o -name go.sum \) -print)
+
+out/$(BINARY_NAME): $(GO_INPUTS)
+		$(GOCMD) build -o $@ .
+
+DIST_NAME=$(BINARY_NAME)-$(shell git describe --tags --always --dirty)-linux-$(shell $(GOCMD) env GOARCH)
+
+dist: build ## packs the binary, the desktop files and this Makefile into out/, for a release
+		rm -rf out/dist
+		mkdir -p out/dist/$(DIST_NAME)/out
+		cp out/$(BINARY_NAME) out/dist/$(DIST_NAME)/out/
+		cp -r data Makefile README.md LICENSE out/dist/$(DIST_NAME)/
+		tar -C out/dist -czf out/$(DIST_NAME).tar.gz $(DIST_NAME)
+		cd out && sha256sum $(DIST_NAME).tar.gz > $(DIST_NAME).tar.gz.sha256
+
 ## Install
-install: build ## installs the application for the current user, in PREFIX
+install: out/$(BINARY_NAME) ## installs the application for the current user, in PREFIX
 		install -Dm755 out/$(BINARY_NAME) $(BINDIR)/$(BINARY_NAME)
 		install -Dm644 data/$(APP_ID).svg $(ICONDIR)/$(APP_ID).svg
 		install -d $(APPDIR)
@@ -114,7 +132,7 @@ coverage: test ## displays test coverage report in html code
 		$(GOCMD) tool cover -html=coverage.out
 
 .PHONY: install-tools check-quality lint lint-fix lint-config vet fmt fmt-check tidy tidy-check \
-	clean build test coverage all help it-cluster it-clean it install uninstall
+	clean build test coverage all help it-cluster it-clean it install uninstall dist
 
 ## Integration tests
 it-cluster: ## creates the kind cluster of the integration tests, if needed
