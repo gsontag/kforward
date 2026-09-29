@@ -5,6 +5,7 @@ import (
 	"log"
 	"slices"
 	"strings"
+	"sync/atomic"
 
 	"fyne.io/systray"
 	"github.com/diamondburned/gotk4/pkg/core/glib"
@@ -18,6 +19,7 @@ import (
 	"gsontag.fr/kforward/internal/kube"
 	"gsontag.fr/kforward/internal/locale"
 	"gsontag.fr/kforward/internal/manager"
+	"gsontag.fr/kforward/internal/notify"
 	"gsontag.fr/kforward/internal/tray"
 )
 
@@ -43,6 +45,11 @@ type app struct {
 
 	monitor     *gio.FileMonitor
 	reloadTimer glib.SourceHandle
+
+	tracker *notify.Tracker
+	sender  *notify.Sender
+	// notifyPending coalesces the checks for notifications, like tray.Refresh
+	notifyPending atomic.Bool
 }
 
 // errUnreadable refuses to save over a configuration file that could not be
@@ -73,6 +80,9 @@ func (a *app) activate() {
 	a.manager.Load(forwards)
 	a.watchConfig()
 
+	a.tracker = notify.NewTracker(a.tr)
+	a.sender = notify.NewSender("Kube Forwarder", "network-error-symbolic")
+
 	start, end := systray.RunWithExternalLoop(a.tray.Refresh, nil)
 	start()
 	a.endTray = end
@@ -84,6 +94,9 @@ func (a *app) shutdown() {
 	}
 	if a.endTray != nil {
 		a.endTray()
+	}
+	if a.sender != nil {
+		a.sender.Close()
 	}
 }
 
@@ -135,10 +148,21 @@ func (a *app) connector(f config.Forward) (forward.Connector, error) {
 	return c, nil
 }
 
-// refresh updates the tray and the window; safe from any goroutine.
+// refresh updates the tray and the window, and notifies what went wrong;
+// safe from any goroutine.
 func (a *app) refresh() {
 	a.tray.Refresh()
 	a.window.Refresh()
+	if !a.notifyPending.Swap(true) {
+		post(a.notify)
+	}
+}
+
+func (a *app) notify() {
+	a.notifyPending.Store(false)
+	for _, n := range a.tracker.Update(a.manager.Snapshot(), a.problem()) {
+		a.sender.Send(n)
+	}
 }
 
 // problem is what is wrong with the configuration or the kubeconfig.

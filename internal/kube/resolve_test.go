@@ -33,8 +33,10 @@ func newPod(name string, labels map[string]string, state podState) *corev1.Pod {
 			{Name: "app", Ports: []corev1.ContainerPort{{Name: "web", ContainerPort: 3000}}},
 		}},
 		Status: corev1.PodStatus{
-			Phase:      corev1.PodRunning,
-			Conditions: []corev1.PodCondition{{Type: corev1.PodReady, Status: corev1.ConditionTrue}},
+			Phase: corev1.PodRunning,
+			Conditions: []corev1.PodCondition{
+				{Type: corev1.PodReady, Status: corev1.ConditionTrue},
+			},
 		},
 	}
 	switch state {
@@ -61,12 +63,19 @@ func grafanaService() *corev1.Service {
 		ObjectMeta: metav1.ObjectMeta{Name: "grafana", Namespace: ns},
 		Spec: corev1.ServiceSpec{
 			Selector: grafanaLabels,
-			Ports:    []corev1.ServicePort{{Name: "http", Port: 80, TargetPort: intstr.FromString("web")}},
+			Ports: []corev1.ServicePort{
+				{Name: "http", Port: 80, TargetPort: intstr.FromString("web")},
+			},
 		},
 	}
 }
 
-func resolve(t *testing.T, target string, remote intstr.IntOrString, objects ...runtime.Object) (Endpoint, error) {
+func resolve(
+	t *testing.T,
+	target string,
+	remote intstr.IntOrString,
+	objects ...runtime.Object,
+) (Endpoint, error) {
 	t.Helper()
 	parsed, err := ParseTarget(target)
 	if err != nil {
@@ -85,7 +94,11 @@ func TestResolve(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{Name: "grafana", Namespace: ns},
 		Spec: appsv1.StatefulSetSpec{Selector: &metav1.LabelSelector{
 			MatchExpressions: []metav1.LabelSelectorRequirement{
-				{Key: "app", Operator: metav1.LabelSelectorOpIn, Values: []string{"grafana", "other"}},
+				{
+					Key:      "app",
+					Operator: metav1.LabelSelectorOpIn,
+					Values:   []string{"grafana", "other"},
+				},
 			},
 		}},
 	}
@@ -244,7 +257,13 @@ func TestResolveKeepsNotFound(t *testing.T) {
 
 // Guards against a kind added to kindAliases but not to podSelector.
 func TestResolveUnsupportedKind(t *testing.T) {
-	_, err := Resolve(t.Context(), fake.NewClientset(), ns, Target{Kind: "cronjob", Name: "x"}, intstr.FromInt32(80))
+	_, err := Resolve(
+		t.Context(),
+		fake.NewClientset(),
+		ns,
+		Target{Kind: "cronjob", Name: "x"},
+		intstr.FromInt32(80),
+	)
 	if err == nil || !strings.Contains(err.Error(), `unsupported kind "cronjob"`) {
 		t.Errorf("got error %v, want an unsupported kind error", err)
 	}
@@ -256,7 +275,13 @@ func TestEveryAliasIsResolvable(t *testing.T) {
 			continue
 		}
 		t.Run(alias, func(t *testing.T) {
-			_, err := Resolve(t.Context(), fake.NewClientset(), ns, Target{Kind: kind, Name: "x"}, intstr.FromInt32(80))
+			_, err := Resolve(
+				t.Context(),
+				fake.NewClientset(),
+				ns,
+				Target{Kind: kind, Name: "x"},
+				intstr.FromInt32(80),
+			)
 			if err != nil && strings.Contains(err.Error(), "unsupported kind") {
 				t.Errorf("kind %q is parsed but not handled by podSelector", kind)
 			}

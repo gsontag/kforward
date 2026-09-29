@@ -12,7 +12,12 @@ import (
 )
 
 func newForward(name string) Forward {
-	return Forward{Name: name, Target: "svc/" + name, LocalPort: 3000, RemotePort: intstr.FromInt32(80)}
+	return Forward{
+		Name:       name,
+		Target:     "svc/" + name,
+		LocalPort:  3000,
+		RemotePort: intstr.FromInt32(80),
+	}
 }
 
 // reload reads the file again in a new store: what was really written.
@@ -87,7 +92,16 @@ func TestSaveWritesCanonicalOrder(t *testing.T) {
 		t.Fatalf("ReadFile: %v", err)
 	}
 	text := string(data)
-	alpha, mid, zeta := strings.Index(text, `"alpha"`), strings.Index(text, `"Mid"`), strings.Index(text, `"zeta"`)
+	alpha, mid, zeta := strings.Index(
+		text,
+		`"alpha"`,
+	), strings.Index(
+		text,
+		`"Mid"`,
+	), strings.Index(
+		text,
+		`"zeta"`,
+	)
 	if alpha >= mid || mid >= zeta {
 		t.Errorf("file not in canonical order:\n%s", text)
 	}
@@ -102,7 +116,8 @@ func TestSaveInvalidForwardChangesNothing(t *testing.T) {
 
 	invalid := newForward("broken")
 	invalid.LocalPort = 0
-	if _, err := s.SaveForward(invalid); err == nil || !strings.Contains(err.Error(), "local-port is required") {
+	if _, err := s.SaveForward(invalid); err == nil ||
+		!strings.Contains(err.Error(), "local-port is required") {
 		t.Fatalf("got error %v, want a validation error", err)
 	}
 

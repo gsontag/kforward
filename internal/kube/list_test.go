@@ -56,7 +56,11 @@ func statefulSet(name, namespace string, spec corev1.PodSpec) *appsv1.StatefulSe
 	}
 }
 
-func service(name, namespace string, selector map[string]string, ports ...corev1.ServicePort) *corev1.Service {
+func service(
+	name, namespace string,
+	selector map[string]string,
+	ports ...corev1.ServicePort,
+) *corev1.Service {
 	return &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{Name: name, Namespace: namespace},
 		Spec:       corev1.ServiceSpec{Selector: selector, Ports: ports},
@@ -81,7 +85,13 @@ func TestTargets(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Targets: %v", err)
 	}
-	want := []string{"svc/grafana", "svc/prometheus", "deploy/grafana", "sts/alertmanager", "sts/loki"}
+	want := []string{
+		"svc/grafana",
+		"svc/prometheus",
+		"deploy/grafana",
+		"sts/alertmanager",
+		"sts/loki",
+	}
 	if !slices.Equal(got, want) {
 		t.Errorf("got %v, want %v", got, want)
 	}
@@ -105,7 +115,10 @@ func TestTargetsEmptyNamespace(t *testing.T) {
 func containers(ports ...[]corev1.ContainerPort) corev1.PodSpec {
 	spec := corev1.PodSpec{}
 	for i, p := range ports {
-		spec.Containers = append(spec.Containers, corev1.Container{Name: string(rune('a' + i)), Ports: p})
+		spec.Containers = append(
+			spec.Containers,
+			corev1.Container{Name: string(rune('a' + i)), Ports: p},
+		)
 	}
 	return spec
 }
@@ -132,7 +145,11 @@ func TestPorts(t *testing.T) {
 		statefulSet("grafana", ns, spec),
 		pod,
 	)
-	fromContainers := []Port{{Number: 22}, {Name: "http", Number: 3000}, {Name: "metrics", Number: 9090}}
+	fromContainers := []Port{
+		{Number: 22},
+		{Name: "http", Number: 3000},
+		{Name: "metrics", Number: 9090},
+	}
 
 	tests := []struct {
 		target string
@@ -165,7 +182,9 @@ func TestPortsTargetMissing(t *testing.T) {
 	for _, target := range []string{"svc/absent", "deploy/absent", "sts/absent", "pod/absent"} {
 		t.Run(target, func(t *testing.T) {
 			parsed, _ := ParseTarget(target)
-			if _, err := Ports(t.Context(), fake.NewClientset(), ns, parsed); !apierrors.IsNotFound(err) {
+			if _, err := Ports(t.Context(), fake.NewClientset(), ns, parsed); !apierrors.IsNotFound(
+				err,
+			) {
 				t.Errorf("got error %v, want NotFound", err)
 			}
 		})

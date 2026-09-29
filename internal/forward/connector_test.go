@@ -32,7 +32,11 @@ func TestClassify(t *testing.T) {
 		{"forbidden", apierrors.NewForbidden(pods, "grafana", errors.New("rbac")), true},
 		{"unauthorized", apierrors.NewUnauthorized("token expired"), true},
 		{"port not found", fmt.Errorf("no TCP service port 81: %w", kube.ErrPortNotFound), true},
-		{"wrapped not found", fmt.Errorf("service/grafana: %w", apierrors.NewNotFound(pods, "grafana")), true},
+		{
+			"wrapped not found",
+			fmt.Errorf("service/grafana: %w", apierrors.NewNotFound(pods, "grafana")),
+			true,
+		},
 		{"pod gone", fmt.Errorf("pod grafana-1 deleted: %w", kube.ErrPodGone), false},
 		{"no ready pod", errors.New("no ready pod among 2 matching app=grafana"), false},
 		{"server error", apierrors.NewInternalError(errors.New("etcd")), false},
@@ -84,14 +88,19 @@ func TestCheckLocalPort(t *testing.T) {
 
 	port := busyPort(t)
 	err := checkLocalPort("127.0.0.1", port)
-	if err == nil || !strings.Contains(err.Error(), fmt.Sprintf("local port %d unavailable", port)) {
+	if err == nil ||
+		!strings.Contains(err.Error(), fmt.Sprintf("local port %d unavailable", port)) {
 		t.Errorf("busy port: got error %v", err)
 	}
 }
 
 // testConnector builds a connector on a fake cluster; requests counts the
 // requests it receives.
-func testConnector(t *testing.T, localPort uint16, objects ...runtime.Object) (*ClusterConnector, *int) {
+func testConnector(
+	t *testing.T,
+	localPort uint16,
+	objects ...runtime.Object,
+) (*ClusterConnector, *int) {
 	t.Helper()
 	cs := fake.NewClientset(objects...)
 	requests := 0
@@ -178,7 +187,12 @@ func testClient(t *testing.T) *kube.Client {
 
 func TestNewClusterConnector(t *testing.T) {
 	client := testClient(t)
-	base := config.Forward{Name: "grafana", Target: "svc/grafana", LocalPort: 3000, RemotePort: intstr.FromInt32(80)}
+	base := config.Forward{
+		Name:       "grafana",
+		Target:     "svc/grafana",
+		LocalPort:  3000,
+		RemotePort: intstr.FromInt32(80),
+	}
 
 	c, err := NewClusterConnector(client, base)
 	if err != nil {
@@ -203,7 +217,11 @@ func TestNewClusterConnectorErrors(t *testing.T) {
 		forward config.Forward
 		wantErr string
 	}{
-		{"unknown context", config.Forward{Context: "nope", Target: "svc/grafana"}, `unknown context "nope"`},
+		{
+			"unknown context",
+			config.Forward{Context: "nope", Target: "svc/grafana"},
+			`unknown context "nope"`,
+		},
 		{"invalid target", config.Forward{Target: "cronjob/backup"}, `unsupported kind "cronjob"`},
 	}
 

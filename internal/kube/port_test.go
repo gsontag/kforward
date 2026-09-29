@@ -47,13 +47,31 @@ func TestPodPort(t *testing.T) {
 		{"svc, omitted targetPort", testService(), intstr.FromInt32(8080), 8080, ""},
 		{"svc, explicit TCP", testService(), intstr.FromString("dns-tcp"), 5353, ""},
 		{"svc, UDP port ignored", testService(), intstr.FromInt32(53), 0, "no TCP service port 53"},
-		{"svc, UDP port by name", testService(), intstr.FromString("dns-udp"), 0, "no TCP service port dns-udp"},
+		{
+			"svc, UDP port by name",
+			testService(),
+			intstr.FromString("dns-udp"),
+			0,
+			"no TCP service port dns-udp",
+		},
 		{"svc, unknown port", testService(), intstr.FromInt32(81), 0, "no TCP service port 81"},
-		{"svc, targetPort not in pod", testService(), intstr.FromInt32(7000), 0, `no container port named "absent"`},
+		{
+			"svc, targetPort not in pod",
+			testService(),
+			intstr.FromInt32(7000),
+			0,
+			`no container port named "absent"`,
+		},
 		{"pod, name in second container", nil, intstr.FromString("web"), 3000, ""},
 		{"pod, name in first container", nil, intstr.FromString("probe"), 8081, ""},
 		{"pod, number used as is", nil, intstr.FromInt32(1234), 1234, ""},
-		{"pod, unknown name", nil, intstr.FromString("nope"), 0, `pod grafana-1 has no container port named "nope"`},
+		{
+			"pod, unknown name",
+			nil,
+			intstr.FromString("nope"),
+			0,
+			`pod grafana-1 has no container port named "nope"`,
+		},
 	}
 
 	for _, tt := range tests {

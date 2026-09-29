@@ -103,6 +103,14 @@ other = "KIND/NAME obligatoire, par exemple svc/grafana: KIND est pod, svc, depl
 hash = "sha1-06d5e5bf35005f0926e4f832926a7c0c7d9cd971"
 other = "Une adresse démarrant par http:// ou https://"
 
+[NotifyConfigProblem]
+hash = "sha1-f6d72122dc5c9281078177c3a337ace5e79d35e2"
+other = "Erreur de configuration"
+
+[NotifyForwardFailed]
+hash = "sha1-b137aaf2c346536591d361c101d5f447293ff52a"
+other = "{{.Name}}: forward arrêté"
+
 [TrayActiveCount]
 description = "Tooltip of the icon"
 hash = "sha1-c3fa30e09c8b27f0f1d07173c2ab0c51755e2c14"

@@ -84,7 +84,10 @@ func TestSortIndependentOfInputOrder(t *testing.T) {
 	rng := rand.New(rand.NewPCG(1, 2))
 	for range 50 {
 		shuffled := slices.Clone(reference)
-		rng.Shuffle(len(shuffled), func(i, j int) { shuffled[i], shuffled[j] = shuffled[j], shuffled[i] })
+		rng.Shuffle(
+			len(shuffled),
+			func(i, j int) { shuffled[i], shuffled[j] = shuffled[j], shuffled[i] },
+		)
 		Sort(shuffled)
 		if !slices.Equal(uuids(shuffled), uuids(reference)) {
 			t.Fatalf("got %v, want %v", uuids(shuffled), uuids(reference))

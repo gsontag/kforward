@@ -261,7 +261,9 @@ func TestStaleReportIgnored(t *testing.T) {
 func TestReload(t *testing.T) {
 	synctest.Test(t, func(t *testing.T) {
 		m, c, _ := newManager(t)
-		m.Load([]config.Forward{fwd("renamed", 1), fwd("moved", 2), fwd("idle", 3), fwd("removed", 4)})
+		m.Load(
+			[]config.Forward{fwd("renamed", 1), fwd("moved", 2), fwd("idle", 3), fwd("removed", 4)},
+		)
 		for _, uuid := range []string{"renamed", "moved", "removed"} {
 			mustDo(t, m.Start, uuid)
 		}

@@ -56,7 +56,14 @@ func TestRowStates(t *testing.T) {
 			forward.Status{State: forward.Connecting, Failures: 2, Err: lost},
 			"Reconnecting, 2 failures", true, false, "lost connection to pod",
 		},
-		{"active", forward.Status{State: forward.Active}, "Active on 127.0.0.1:3000", true, true, ""},
+		{
+			"active",
+			forward.Status{State: forward.Active},
+			"Active on 127.0.0.1:3000",
+			true,
+			true,
+			"",
+		},
 		{
 			"failed",
 			forward.Status{State: forward.Failed, Failures: 4, Err: lost},
@@ -113,7 +120,12 @@ func TestRowGroups(t *testing.T) {
 	stopped := forward.Status{}
 
 	check(t, "no group at all", groups(entry("a", "", stopped), entry("b", "", stopped)), "a= b=")
-	check(t, "some groups", groups(entry("a", "db", stopped), entry("b", "", stopped)), "a=db b=Other")
+	check(
+		t,
+		"some groups",
+		groups(entry("a", "db", stopped), entry("b", "", stopped)),
+		"a=db b=Other",
+	)
 	check(t, "empty", groups(), "")
 }
 

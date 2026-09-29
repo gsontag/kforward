@@ -20,8 +20,16 @@ func TestPreferences(t *testing.T) {
 		{"nothing", nil, []string{}},
 		{"LANG", map[string]string{"LANG": "fr_FR.UTF-8"}, []string{"fr-FR"}},
 		{"modifier", map[string]string{"LANG": "fr_FR.UTF-8@euro"}, []string{"fr-FR"}},
-		{"LC_ALL wins", map[string]string{"LC_ALL": "de_DE.UTF-8", "LANG": "fr_FR.UTF-8"}, []string{"de-DE"}},
-		{"LC_MESSAGES before LANG", map[string]string{"LC_MESSAGES": "es_ES", "LANG": "fr_FR"}, []string{"es-ES"}},
+		{
+			"LC_ALL wins",
+			map[string]string{"LC_ALL": "de_DE.UTF-8", "LANG": "fr_FR.UTF-8"},
+			[]string{"de-DE"},
+		},
+		{
+			"LC_MESSAGES before LANG",
+			map[string]string{"LC_MESSAGES": "es_ES", "LANG": "fr_FR"},
+			[]string{"es-ES"},
+		},
 		{
 			"LANGUAGE list first",
 			map[string]string{"LANGUAGE": "de:fr", "LANG": "en_US.UTF-8"},
@@ -73,7 +81,11 @@ func TestTranslatorPrefersFirstSupported(t *testing.T) {
 }
 
 func TestPlural(t *testing.T) {
-	msg := &i18n.Message{ID: "TrayActiveCount", One: "{{.Count}} active forward", Other: "{{.Count}} active forwards"}
+	msg := &i18n.Message{
+		ID:    "TrayActiveCount",
+		One:   "{{.Count}} active forward",
+		Other: "{{.Count}} active forwards",
+	}
 	fr, en := New("fr"), New()
 	tests := []struct {
 		count      int

@@ -55,7 +55,10 @@ func (s *fakeSource) Targets(ctx context.Context, kubeContext, namespace string)
 	return []string{"svc/" + namespace}, nil
 }
 
-func (s *fakeSource) Ports(ctx context.Context, kubeContext, namespace, target string) ([]kube.Port, error) {
+func (s *fakeSource) Ports(
+	ctx context.Context,
+	kubeContext, namespace, target string,
+) ([]kube.Port, error) {
 	if err := s.answer(ctx, "ports of "+kubeContext+"/"+namespace+"/"+target); err != nil {
 		return nil, err
 	}
@@ -292,7 +295,8 @@ func TestQueryTimeout(t *testing.T) {
 		ui.settle(QueryTimeout)
 
 		check(t, "waited", time.Since(start), QueryTimeout)
-		if len(*got) == 0 || !strings.Contains((*got)[len(*got)-1], context.DeadlineExceeded.Error()) {
+		if len(*got) == 0 ||
+			!strings.Contains((*got)[len(*got)-1], context.DeadlineExceeded.Error()) {
 			t.Errorf("delivered %v, want the namespaces to fail with a deadline", *got)
 		}
 	})

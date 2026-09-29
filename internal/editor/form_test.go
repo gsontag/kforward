@@ -75,7 +75,12 @@ func TestFieldProblems(t *testing.T) {
 		},
 		{"unknown kind", func(f *Form) { f.Target = "cronjob/backup" }, Target, ""},
 		{"target without name", func(f *Form) { f.Target = "svc/" }, Target, ""},
-		{"local port zero", func(f *Form) { f.LocalPort = "0" }, LocalPort, "A port number, from 1 to 65535"},
+		{
+			"local port zero",
+			func(f *Form) { f.LocalPort = "0" },
+			LocalPort,
+			"A port number, from 1 to 65535",
+		},
 		{"local port too large", func(f *Form) { f.LocalPort = "70000" }, LocalPort, ""},
 		{"local port with letters", func(f *Form) { f.LocalPort = "3OOO" }, LocalPort, ""},
 		{"empty local port", func(f *Form) { f.LocalPort = "" }, LocalPort, ""},
@@ -89,7 +94,12 @@ func TestFieldProblems(t *testing.T) {
 			Address,
 			"An IP address, such as 127.0.0.1, or localhost",
 		},
-		{"relative URL", func(f *Form) { f.URL = "grafana" }, URL, "An address starting with http:// or https://"},
+		{
+			"relative URL",
+			func(f *Form) { f.URL = "grafana" },
+			URL,
+			"An address starting with http:// or https://",
+		},
 		{"other scheme", func(f *Form) { f.URL = "ftp://localhost:3000" }, URL, ""},
 		{"URL without host", func(f *Form) { f.URL = "http://" }, URL, ""},
 	}

@@ -14,7 +14,12 @@ import (
 func TestShape(t *testing.T) {
 	menu := func(items ...Item) []Item { return items }
 	toggle := func(text string, checked bool) Item {
-		return Item{Kind: Toggle, Text: text, Checked: checked, Action: Action{Op: ToggleForward, UUID: text}}
+		return Item{
+			Kind:    Toggle,
+			Text:    text,
+			Checked: checked,
+			Action:  Action{Op: ToggleForward, UUID: text},
+		}
 	}
 	base := menu(toggle("a", false), Item{Kind: Separator}, Item{Kind: Button, Text: "Quit"})
 
@@ -25,16 +30,32 @@ func TestShape(t *testing.T) {
 	}{
 		// Texts and states differ: updated in place
 		{"texts and states", menu(
-			toggle("a — connecting…", true), Item{Kind: Separator}, Item{Kind: Button, Text: "Quitter", Disabled: true},
+			toggle(
+				"a — connecting…",
+				true,
+			),
+			Item{Kind: Separator},
+			Item{Kind: Button, Text: "Quitter", Disabled: true},
 		), true},
 		{"item added", menu(
-			toggle("a", false), toggle("b", false), Item{Kind: Separator}, Item{Kind: Button, Text: "Quit"},
+			toggle(
+				"a",
+				false,
+			),
+			toggle("b", false),
+			Item{Kind: Separator},
+			Item{Kind: Button, Text: "Quit"},
 		), false},
 		{"kind changed", menu(
 			Item{Kind: Label, Text: "a"}, Item{Kind: Separator}, Item{Kind: Button, Text: "Quit"},
 		), false},
 		{"submenu appears", menu(
-			toggle("a", false), Item{Kind: Separator}, Item{Kind: Submenu, Children: menu(Item{Kind: Button})},
+			toggle(
+				"a",
+				false,
+			),
+			Item{Kind: Separator},
+			Item{Kind: Submenu, Children: menu(Item{Kind: Button})},
 		), false},
 	}
 	for _, tt := range tests {
@@ -145,8 +166,13 @@ func TestClickReadsTheCurrentItem(t *testing.T) {
 	state := forward.Stopped
 	source := func() ([]manager.Entry, string) {
 		e := manager.Entry{
-			Forward: config.Forward{UUID: "a", Name: "a", LocalPort: 3000, URL: "http://localhost:3000"},
-			Status:  forward.Status{State: state},
+			Forward: config.Forward{
+				UUID:      "a",
+				Name:      "a",
+				LocalPort: 3000,
+				URL:       "http://localhost:3000",
+			},
+			Status: forward.Status{State: state},
 		}
 		return []manager.Entry{e}, ""
 	}

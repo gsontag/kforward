@@ -165,14 +165,21 @@ func TestRunStableResetsFailures(t *testing.T) {
 		// Each drop after a stable period is a first failure again: never gives up
 		{"stable", DefaultPolicy.StableAfter, strings.Repeat("connecting@1 active@0 ", 5), false},
 		// Drops before StableAfter pile up until the give-up
-		{"unstable", DefaultPolicy.StableAfter - time.Second, "connecting@1 active@0 connecting@2 active@0 " +
-			"connecting@3 active@0 failed@4", true},
+		{
+			"unstable",
+			DefaultPolicy.StableAfter - time.Second,
+			"connecting@1 active@0 connecting@2 active@0 " +
+				"connecting@3 active@0 failed@4",
+			true,
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			synctest.Test(t, func(t *testing.T) {
-				c := &fakeConnector{steps: []step{{ready: true, runFor: tt.activeFor, forwardErr: errLost}}}
+				c := &fakeConnector{
+					steps: []step{{ready: true, runFor: tt.activeFor, forwardErr: errLost}},
+				}
 				var r recorder
 				ctx, cancel := context.WithCancel(t.Context())
 				defer cancel()

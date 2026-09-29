@@ -307,7 +307,17 @@ func TestTooltip(t *testing.T) {
 		{2, "2 active forwards", "2 forwards actifs"},
 	}
 	for _, tt := range tests {
-		check(t, fmt.Sprintf("english %d", tt.active), Tooltip(Summary{Active: tt.active}, tr), tt.english)
-		check(t, fmt.Sprintf("french %d", tt.active), Tooltip(Summary{Active: tt.active}, fr), tt.french)
+		check(
+			t,
+			fmt.Sprintf("english %d", tt.active),
+			Tooltip(Summary{Active: tt.active}, tr),
+			tt.english,
+		)
+		check(
+			t,
+			fmt.Sprintf("french %d", tt.active),
+			Tooltip(Summary{Active: tt.active}, fr),
+			tt.french,
+		)
 	}
 }
