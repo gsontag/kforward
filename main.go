@@ -2,7 +2,9 @@
 package main
 
 import (
+	"context"
 	"flag"
+	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -22,6 +24,7 @@ func main() {
 		"",
 		"run the named forward in the foreground until interrupted",
 	)
+	background := flag.Bool("background", false, "start in the tray, without opening the window")
 	flag.Parse()
 	switch {
 	case *check:
@@ -30,7 +33,7 @@ func main() {
 		os.Exit(runForward(*forward))
 	}
 	application := gtk.NewApplication(appID, gio.ApplicationDefaultFlags)
-	a := &app{gtk: application}
+	a := &app{gtk: application, background: *background}
 	application.ConnectActivate(a.activate)
 	application.ConnectShutdown(a.shutdown)
 
@@ -41,6 +44,16 @@ func main() {
 		<-signals
 		post(application.Quit)
 	}()
+
+	// Registering early tells whether an instance already runs: started in
+	// the background, there is nothing to bring to the front
+	if err := application.Register(context.Background()); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+	if *background && application.IsRemote() {
+		return
+	}
 
 	// GApplication parses command line too and would reject our options
 	if code := application.Run(append([]string{os.Args[0]}, flag.Args()...)); code > 0 {

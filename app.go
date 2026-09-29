@@ -28,7 +28,9 @@ import (
 type app struct {
 	gtk     *gtk.Application
 	started bool
-	path    string
+	// background starts in the tray only, as at login
+	background bool
+	path       string
 	// configProblem and kubeProblem are the errors of the configuration file
 	// and of the kubeconfig, shown in the menu and the window
 	configProblem, kubeProblem string
@@ -91,6 +93,10 @@ func (a *app) activate() {
 	start, end := systray.RunWithExternalLoop(a.tray.Refresh, nil)
 	start()
 	a.endTray = end
+
+	if !a.background {
+		a.window.Show()
+	}
 }
 
 func (a *app) shutdown() {
