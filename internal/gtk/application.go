@@ -26,11 +26,6 @@ func (a *Application) gapp() *C.GApplication {
 	return (*C.GApplication)(unsafe.Pointer(a.p))
 }
 
-// Native is the GtkApplication pointer, for the code still using gotk4.
-func (a *Application) Native() unsafe.Pointer {
-	return unsafe.Pointer(a.p)
-}
-
 // Register registers the application on the session bus, which tells whether
 // another instance runs already: see IsRemote.
 func (a *Application) Register() error {

@@ -62,6 +62,31 @@ func (w *Window) SetChild(child Widgetter) {
 	})
 }
 
+// SetTransientFor keeps the window above parent, as a dialog of it.
+func (w *Window) SetTransientFor(parent *Window) {
+	w.window(func(p *C.GtkWindow) {
+		parent.window(func(pp *C.GtkWindow) { C.gtk_window_set_transient_for(p, pp) })
+	})
+}
+
+// SetModal makes the window block its parent while shown.
+func (w *Window) SetModal(modal bool) {
+	w.window(func(p *C.GtkWindow) { C.gtk_window_set_modal(p, gbool(modal)) })
+}
+
+// SetDestroyWithParent destroys the window with its parent.
+func (w *Window) SetDestroyWithParent(destroy bool) {
+	w.window(func(p *C.GtkWindow) { C.gtk_window_set_destroy_with_parent(p, gbool(destroy)) })
+}
+
+// SetDefaultWidget sets the widget Enter activates, in an entry that
+// activates the default.
+func (w *Window) SetDefaultWidget(widget Widgetter) {
+	w.window(func(p *C.GtkWindow) {
+		widget.base().with(func(d *C.GtkWidget) { C.gtk_window_set_default_widget(p, d) })
+	})
+}
+
 // Present shows the window, in front of the others.
 func (w *Window) Present() {
 	w.window(func(p *C.GtkWindow) { C.gtk_window_present(p) })

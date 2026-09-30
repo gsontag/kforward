@@ -4,10 +4,9 @@ import (
 	"slices"
 	"strconv"
 
-	"github.com/diamondburned/gotk4/pkg/gtk/v4"
-
 	"github.com/gsontag/kforward/internal/config"
 	"github.com/gsontag/kforward/internal/editor"
+	"github.com/gsontag/kforward/internal/gtk"
 	"github.com/gsontag/kforward/internal/locale"
 )
 
@@ -69,7 +68,7 @@ func OpenEditor(
 	}
 
 	e.win = gtk.NewWindow()
-	e.win.SetTransientFor(parent.gotkWindow())
+	e.win.SetTransientFor(&parent.win.Window)
 	e.win.SetModal(true)
 	e.win.SetDefaultSize(420, -1)
 	// The dialog is built again at each opening: nothing to keep once closed
@@ -301,10 +300,7 @@ func newEntry(text, placeholder string) *gtk.Entry {
 }
 
 func problemLabel() *gtk.Label {
-	// Not label(), which window.go builds with internal/gtk already
-	l := gtk.NewLabel("")
-	l.SetXAlign(0)
-	l.AddCSSClass("error")
+	l := label("error")
 	l.SetWrap(true)
 	l.SetVisible(false)
 	return l

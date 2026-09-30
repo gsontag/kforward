@@ -1,6 +1,9 @@
 package gtk
 
-import "testing"
+import (
+	"testing"
+	"unsafe"
+)
 
 // The signals go through the same trampoline as the main loop functions, but
 // connected to an instance: creating the application needs neither a display
@@ -11,8 +14,8 @@ func TestConnectCallsAtEachEmission(t *testing.T) {
 	a.ConnectActivate(func() { activations++ })
 	a.ConnectShutdown(func() { shutdowns++ })
 
-	emit(a.Native(), "activate")
-	emit(a.Native(), "activate")
+	emit(unsafe.Pointer(a.p), "activate")
+	emit(unsafe.Pointer(a.p), "activate")
 
 	check(t, "activations", activations, 2)
 	// Each function answers its own signal only

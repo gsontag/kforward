@@ -1,9 +1,8 @@
 package gui
 
 import (
-	"github.com/diamondburned/gotk4/pkg/gtk/v4"
-
 	"github.com/gsontag/kforward/internal/editor"
+	"github.com/gsontag/kforward/internal/gtk"
 	"github.com/gsontag/kforward/internal/locale"
 )
 
