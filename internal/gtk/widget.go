@@ -133,6 +133,21 @@ func (w *Widget) RemoveCSSClass(class string) {
 	})
 }
 
+// NotifyProperty calls f each time the property changes, such as "visible".
+func (w *Widget) NotifyProperty(property string, f func()) {
+	w.with(func(p *C.GtkWidget) {
+		connectPointer(C.gpointer(p), "notify::"+property, func(unsafe.Pointer) { f() })
+	})
+}
+
+// Native is the GtkWidget pointer, for the code still using gotk4; nil
+// once the widget is gone.
+func (w *Widget) Native() unsafe.Pointer {
+	var native unsafe.Pointer
+	w.with(func(p *C.GtkWidget) { native = unsafe.Pointer(p) })
+	return native
+}
+
 // ConnectDestroy calls f when the widget is destroyed.
 func (w *Widget) ConnectDestroy(f func()) {
 	w.with(func(p *C.GtkWidget) { connect(C.gpointer(p), "destroy", f) })

@@ -8,6 +8,10 @@ static void callback_pointer(gpointer instance, gpointer arg, gpointer data) {
   goCallbackPointer((uintptr_t)data, arg);
 }
 
+static gboolean callback_bool(gpointer instance, gboolean arg, gpointer data) {
+  return goCallbackBool((uintptr_t)data, arg);
+}
+
 static void header_func(GtkListBoxRow *row, GtkListBoxRow *before, gpointer data) {
   goHeaderFunc((uintptr_t)data, row, before);
 }
@@ -31,6 +35,11 @@ gulong kf_connect(gpointer instance, const char *signal, uintptr_t handle) {
 
 gulong kf_connect_pointer(gpointer instance, const char *signal, uintptr_t handle) {
   return g_signal_connect_data(instance, signal, G_CALLBACK(callback_pointer),
+    (gpointer)handle, closure_notify, 0);
+}
+
+gulong kf_connect_bool(gpointer instance, const char *signal, uintptr_t handle) {
+  return g_signal_connect_data(instance, signal, G_CALLBACK(callback_bool),
     (gpointer)handle, closure_notify, 0);
 }
 

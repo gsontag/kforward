@@ -7,12 +7,14 @@ extern void goCallback(uintptr_t handle);
 extern gboolean goSourceFunc(uintptr_t handle);
 extern void goRelease(uintptr_t handle);
 extern void goCallbackPointer(uintptr_t handle, gpointer arg);
+extern gboolean goCallbackBool(uintptr_t handle, gboolean arg);
 extern void goHeaderFunc(uintptr_t handle, GtkListBoxRow *row, GtkListBoxRow *before);
 
 // The trampolines: C functions GLib can call, which call back into Go with the
 // cgo.Handle of the Go function, carried as the user data of the callback.
 gulong kf_connect(gpointer instance, const char *signal, uintptr_t handle);
 gulong kf_connect_pointer(gpointer instance, const char *signal, uintptr_t handle);
+gulong kf_connect_bool(gpointer instance, const char *signal, uintptr_t handle);
 void kf_list_box_set_header_func(GtkListBox *box, uintptr_t handle);
 guint kf_idle_add(uintptr_t handle);
 void kf_emit(gpointer instance, const char *signal);

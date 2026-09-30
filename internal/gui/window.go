@@ -7,8 +7,7 @@ import (
 	"strings"
 	"sync/atomic"
 
-	"github.com/diamondburned/gotk4/pkg/gtk/v4"
-
+	"github.com/gsontag/kforward/internal/gtk"
 	"github.com/gsontag/kforward/internal/locale"
 	"github.com/gsontag/kforward/internal/manager"
 	"github.com/gsontag/kforward/internal/window"

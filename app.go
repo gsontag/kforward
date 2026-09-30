@@ -8,9 +8,7 @@ import (
 	"sync/atomic"
 
 	"fyne.io/systray"
-	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/gio/v2"
-	gotk "github.com/diamondburned/gotk4/pkg/gtk/v4"
 
 	"github.com/gsontag/kforward/internal/autostart"
 	"github.com/gsontag/kforward/internal/config"
@@ -91,7 +89,7 @@ func (a *app) activate() {
 
 	a.tr = locale.FromEnvironment()
 	a.tray = tray.New(a.tr, a.trayState, post, a.handle)
-	a.window = gui.New(gotkApplication(a.gtk), a.tr, a.windowState, post, a.toggle, a.edit)
+	a.window = gui.New(a.gtk, a.tr, a.windowState, post, a.toggle, a.edit)
 	a.manager = manager.New(a.connector, forward.DefaultPolicy, slog.Default(), a.refresh)
 	a.manager.Load(forwards)
 	a.watchConfig()
@@ -106,12 +104,6 @@ func (a *app) activate() {
 	if !a.background {
 		a.window.Show()
 	}
-}
-
-// gotkApplication wraps the application for the code still using gotk4,
-// until the migration to internal/gtk is over.
-func gotkApplication(a *gtk.Application) *gotk.Application {
-	return coreglib.Take(a.Native()).Cast().(*gotk.Application)
 }
 
 // newAutostart returns the autostart entry of the running program. Without

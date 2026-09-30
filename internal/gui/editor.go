@@ -69,7 +69,7 @@ func OpenEditor(
 	}
 
 	e.win = gtk.NewWindow()
-	e.win.SetTransientFor(&parent.win.Window)
+	e.win.SetTransientFor(parent.gotkWindow())
 	e.win.SetModal(true)
 	e.win.SetDefaultSize(420, -1)
 	// The dialog is built again at each opening: nothing to keep once closed
@@ -301,7 +301,10 @@ func newEntry(text, placeholder string) *gtk.Entry {
 }
 
 func problemLabel() *gtk.Label {
-	l := label("error")
+	// Not label(), which window.go builds with internal/gtk already
+	l := gtk.NewLabel("")
+	l.SetXAlign(0)
+	l.AddCSSClass("error")
 	l.SetWrap(true)
 	l.SetVisible(false)
 	return l
