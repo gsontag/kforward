@@ -22,7 +22,7 @@ jobs:
           apt-get update
           apt-get install -y --no-install-recommends \
             ca-certificates git make gcc libc6-dev pkg-config \
-            libgtk-4-dev libgirepository1.0-dev
+            libgtk-4-dev libgirepository1.0-dev libgtk-4-bin
       - uses: actions/checkout@v7
       # The container runs as root, the checkout belongs to the runner user:
       # git refuses such a repository, which go build asks for the version
@@ -41,5 +41,5 @@ jobs:
       - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
-      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libgtk-4-dev
+      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libgtk-4-dev libgtk-4-bin
       - run: make it

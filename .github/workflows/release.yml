@@ -21,7 +21,7 @@ jobs:
           apt-get update
           apt-get install -y --no-install-recommends \
             ca-certificates git make gcc libc6-dev pkg-config \
-            libgtk-4-dev libgirepository1.0-dev gh
+            libgtk-4-dev libgtk-4-bin libgirepository1.0-dev gh
       - uses: actions/checkout@v7
         with:
           # The history and the tags: the version comes from git describe
