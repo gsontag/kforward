@@ -10,31 +10,26 @@ permissions:
 
 jobs:
   release:
-    runs-on: ubuntu-latest
-    # gotk4 needs GLib 2.88, newer than the one of the runner
-    container: ubuntu:26.04
-    timeout-minutes: 30
+    # Built on the oldest Ubuntu supported, the binary runs on the newer
+    # systems: glibc and GTK keep their old symbols
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
     steps:
-      # gh is GitHub's own CLI, packaged by Ubuntu: no third-party action
-      - name: Install the build dependencies
-        run: |
-          apt-get update
-          apt-get install -y --no-install-recommends \
-            ca-certificates git make gcc libc6-dev pkg-config \
-            libgtk-4-dev libgtk-4-bin libgirepository1.0-dev gh
       - uses: actions/checkout@v7
         with:
           # The history and the tags: the version comes from git describe
           fetch-depth: 0
-      # The container runs as root, the checkout belongs to the runner user:
-      # git refuses such a repository, which go build asks for the version
-      - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
+      - name: Install the GTK headers, and Broadway for the widget tests
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libgtk-4-dev libgtk-4-bin
       - run: make install-tools
       # A tag is not a push to main: CI has not run on it
       - run: make all dist
+      # gh is GitHub's own CLI, installed on the runners: no third-party action
       - name: Publish the release
         env:
           GH_TOKEN: ${{ github.token }}

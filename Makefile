@@ -122,8 +122,7 @@ uninstall: ## removes what install added
 		rm -f $(BINDIR)/$(BINARY_NAME) $(ICONDIR)/$(APP_ID).svg $(APPDIR)/$(APP_ID).desktop
 
 ## Test
-# GTK packages build for minutes with -race: kept out of the unit and it tests
-TEST_PKGS=$(shell $(GOCMD) list ./internal/... | grep -v /internal/gui)
+TEST_PKGS=./internal/...
 
 test: ## runs tests and generates coverage report
 		$(GOCMD) test -race -timeout 2m $(TEST_PKGS) -coverprofile=coverage.out

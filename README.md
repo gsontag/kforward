@@ -34,8 +34,8 @@ cannot, you get a notification.
 - Linux with a tray that supports StatusNotifierItem: KDE, XFCE, Cinnamon...
   On GNOME, the *AppIndicator and KStatusNotifierItem Support* extension
   (installed by default on Ubuntu).
-- GTK 4 and GLib 2.88 or later, as in Ubuntu 26.04: the GTK bindings use
-  recent GLib functions.
+- GTK 4.12 and GLib 2.46 or later, as in Ubuntu 24.04 and more recent
+  distributions.
 - A kubeconfig: kforward uses client-go, not the `kubectl` binary.
 
 To build it:
@@ -60,8 +60,8 @@ This installs, for the current user only:
 - the icon in `~/.local/share/icons`
 
 Use `make install PREFIX=/usr/local` (as root) for a system-wide install,
-and `make uninstall` to remove it. The first build takes a few minutes: the
-GTK bindings are large.
+and `make uninstall` to remove it. The first build takes a minute or two:
+client-go is large.
 
 ### From a release
 
@@ -75,8 +75,8 @@ cd kforward-v0.1.0-linux-amd64
 make install
 ```
 
-No Go is needed: the archive holds the program, built on Ubuntu 26.04. It
-runs on distributions with GLib 2.88 or later; on older ones, build it from
+No Go is needed: the archive holds the program, built on Ubuntu 24.04. It
+runs on distributions at least as recent; on older ones, build it from
 source.
 
 ## Configuration
@@ -143,9 +143,12 @@ The integration tests need [kind](https://kind.sigs.k8s.io/) and Docker.
 They create a cluster named `kforward-it`, with its own kubeconfig in `out/`:
 your current context is left untouched. `make it-clean` deletes it.
 
-The GTK code (`internal/gui` and the `main` package) is kept thin and has no
-unit tests: the menu, the window rows and the editor form are plain data
-models, tested on their own.
+The GTK code is kept thin. `internal/gtk` binds the few GTK functions
+kforward uses, and is tested on a private Broadway display: install
+`gtk4-broadwayd` (`libgtk-4-bin` on Debian and Ubuntu) to run these tests,
+which are skipped without it. `internal/gui` and the `main` package use
+these bindings; the menu, the window rows and the editor form are plain
+data models, tested on their own.
 
 ## License
 

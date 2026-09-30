@@ -1,6 +1,5 @@
-// Package gui holds the GTK widgets. It is kept apart from the models it
-// shows: GTK takes minutes to build with the race detector, which the unit
-// tests use.
+// Package gui holds the GTK widgets of the window and of the edit dialog.
+// It is kept apart from the models it shows, which are tested without GTK.
 package gui
 
 import (

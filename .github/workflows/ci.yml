@@ -10,31 +10,23 @@ permissions:
 
 jobs:
   check:
-    runs-on: ubuntu-latest
-    # gotk4 needs GLib 2.88, newer than the one of the runner
-    container: ubuntu:26.04
-    timeout-minutes: 30
+    # The oldest Ubuntu supported: the GTK and GLib versions README requires
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
     steps:
-      # git before checkout: without it, checkout downloads a tarball, and
-      # go build cannot stamp the version
-      - name: Install the build dependencies
-        run: |
-          apt-get update
-          apt-get install -y --no-install-recommends \
-            ca-certificates git make gcc libc6-dev pkg-config \
-            libgtk-4-dev libgirepository1.0-dev libgtk-4-bin
       - uses: actions/checkout@v7
-      # The container runs as root, the checkout belongs to the runner user:
-      # git refuses such a repository, which go build asks for the version
-      - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
+      - name: Install the GTK headers, and Broadway for the widget tests
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libgtk-4-dev libgtk-4-bin
       - run: make install-tools
       - run: make all
 
   integration:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
