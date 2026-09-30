@@ -27,6 +27,16 @@ func goSourceFunc(handle C.uintptr_t) C.gboolean {
 	return C.FALSE
 }
 
+//export goCallbackPointer
+func goCallbackPointer(handle C.uintptr_t, arg C.gpointer) {
+	cgo.Handle(handle).Value().(func(unsafe.Pointer))(unsafe.Pointer(arg))
+}
+
+//export goHeaderFunc
+func goHeaderFunc(handle C.uintptr_t, row, before *C.GtkListBoxRow) {
+	cgo.Handle(handle).Value().(func(row, before *ListBoxRow))(wrapRow(row), wrapRow(before))
+}
+
 //export goRelease
 func goRelease(handle C.uintptr_t) {
 	cgo.Handle(handle).Delete()
@@ -48,6 +58,14 @@ func connect(instance C.gpointer, signal string, f func()) {
 	name := C.CString(signal)
 	defer C.free(unsafe.Pointer(name))
 	C.kf_connect(instance, name, newHandle(f))
+}
+
+// connectPointer calls f each time instance emits signal. The signal must
+// pass one pointer after the instance, given to f, and return nothing.
+func connectPointer(instance C.gpointer, signal string, f func(unsafe.Pointer)) {
+	name := C.CString(signal)
+	defer C.free(unsafe.Pointer(name))
+	C.kf_connect_pointer(instance, name, newHandle(f))
 }
 
 // emit emits signal on instance, without arguments: the tests check the

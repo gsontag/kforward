@@ -1,5 +1,6 @@
 package gtk
 
+// #include "callback.h"
 // #include <stdlib.h>
 // #include <gtk/gtk.h>
 import "C"
@@ -52,6 +53,17 @@ func (o *object) alive() bool {
 // callbacks without a user to click.
 func (o *object) emit(signal string) {
 	o.with(func(p unsafe.Pointer) { emit(p, signal) })
+}
+
+// emitWith emits signal on the object, with arg as its only argument.
+func (o *object) emitWith(signal string, arg *object) {
+	o.with(func(p unsafe.Pointer) {
+		arg.with(func(a unsafe.Pointer) {
+			name := C.CString(signal)
+			defer C.free(unsafe.Pointer(name))
+			C.kf_emit_pointer(C.gpointer(p), name, C.gpointer(a))
+		})
+	})
 }
 
 // release drops the reference of a widget never added to a parent: the tests
