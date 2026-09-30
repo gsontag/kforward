@@ -37,6 +37,11 @@ func goCallbackBool(handle C.uintptr_t, arg C.gboolean) C.gboolean {
 	return gbool(cgo.Handle(handle).Value().(func(bool) bool)(arg != C.FALSE))
 }
 
+//export goFileChanged
+func goFileChanged(handle C.uintptr_t, event C.GFileMonitorEvent) {
+	cgo.Handle(handle).Value().(func(FileMonitorEvent))(FileMonitorEvent(event))
+}
+
 //export goHeaderFunc
 func goHeaderFunc(handle C.uintptr_t, row, before *C.GtkListBoxRow) {
 	cgo.Handle(handle).Value().(func(row, before *ListBoxRow))(wrapRow(row), wrapRow(before))

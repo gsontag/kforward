@@ -12,6 +12,11 @@ static gboolean callback_bool(gpointer instance, gboolean arg, gpointer data) {
   return goCallbackBool((uintptr_t)data, arg);
 }
 
+static void file_changed(GFileMonitor *monitor, GFile *file, GFile *other,
+    GFileMonitorEvent event, gpointer data) {
+  goFileChanged((uintptr_t)data, event);
+}
+
 static void header_func(GtkListBoxRow *row, GtkListBoxRow *before, gpointer data) {
   goHeaderFunc((uintptr_t)data, row, before);
 }
@@ -45,6 +50,11 @@ gulong kf_connect_bool(gpointer instance, const char *signal, uintptr_t handle) 
 
 void kf_list_box_set_header_func(GtkListBox *box, uintptr_t handle) {
   gtk_list_box_set_header_func(box, header_func, (gpointer)handle, destroy);
+}
+
+gulong kf_connect_file_changed(GFileMonitor *monitor, uintptr_t handle) {
+  return g_signal_connect_data(monitor, "changed", G_CALLBACK(file_changed),
+    (gpointer)handle, closure_notify, 0);
 }
 
 guint kf_idle_add(uintptr_t handle) {

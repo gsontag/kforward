@@ -8,7 +8,6 @@ import (
 	"sync/atomic"
 
 	"fyne.io/systray"
-	"github.com/diamondburned/gotk4/pkg/gio/v2"
 
 	"github.com/gsontag/kforward/internal/autostart"
 	"github.com/gsontag/kforward/internal/config"
@@ -45,7 +44,7 @@ type app struct {
 	// kubeconfig is the path client was loaded from
 	kubeconfig string
 
-	monitor     *gio.FileMonitor
+	monitor     *gtk.FileMonitor
 	reloadTimer gtk.SourceHandle
 
 	tracker *notify.Tracker
@@ -215,17 +214,17 @@ func (a *app) handle(it tray.Item) {
 			err = a.manager.Start(it.Action.UUID)
 		}
 	case tray.OpenURL:
-		err = gio.AppInfoLaunchDefaultForURI(it.Action.URL, nil)
+		err = gtk.LaunchDefaultForURI(it.Action.URL)
 	case tray.StopAll:
 		a.manager.StopAll()
 	case tray.EditConfig:
-		err = gio.AppInfoLaunchDefaultForURI(gio.NewFileForPath(a.path).URI(), nil)
+		err = gtk.LaunchDefaultForURI(gtk.FileURI(a.path))
 	case tray.Quit:
 		a.gtk.Quit()
 	case tray.ShowWindow:
 		a.window.Show()
 	case tray.OpenLog:
-		err = gio.AppInfoLaunchDefaultForURI(gio.NewFileForPath(a.logPath).URI(), nil)
+		err = gtk.LaunchDefaultForURI(gtk.FileURI(a.logPath))
 	case tray.ToggleAutostart:
 		if it.Checked {
 			err = a.autostart.Disable()

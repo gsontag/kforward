@@ -1,10 +1,7 @@
 package main
 
 import (
-	"context"
 	"log/slog"
-
-	"github.com/diamondburned/gotk4/pkg/gio/v2"
 
 	"github.com/gsontag/kforward/internal/config"
 	"github.com/gsontag/kforward/internal/gtk"
@@ -21,30 +18,29 @@ func (a *app) watchConfig() {
 	}
 
 	// Watch moves too: a save by rename, like the store's own, is not a write
-	monitor, err := gio.NewFileForPath(a.path).
-		MonitorFile(context.Background(), gio.FileMonitorWatchMoves)
+	monitor, err := gtk.MonitorFile(a.path)
 	if err != nil {
 		slog.Warn("watch config", "path", a.path, "err", err)
 		return
 	}
 	// Kept in the app: a monitor collected by the GC stops watching
-	a.monitor = gio.BaseFileMonitor(monitor)
-	a.monitor.ConnectChanged(func(_, _ gio.Filer, event gio.FileMonitorEvent) {
+	a.monitor = monitor
+	a.monitor.ConnectChanged(func(event gtk.FileMonitorEvent) {
 		switch event {
-		case gio.FileMonitorEventChangesDoneHint,
-			gio.FileMonitorEventCreated,
-			gio.FileMonitorEventDeleted,
-			gio.FileMonitorEventRenamed,
-			gio.FileMonitorEventMovedIn:
+		case gtk.FileMonitorEventChangesDoneHint,
+			gtk.FileMonitorEventCreated,
+			gtk.FileMonitorEventDeleted,
+			gtk.FileMonitorEventRenamed,
+			gtk.FileMonitorEventMovedIn:
 			a.scheduleReload()
 		// A write in progress, a permission change, a move out, an unmount:
 		// nothing to read, or ChangesDoneHint follows
-		case gio.FileMonitorEventChanged,
-			gio.FileMonitorEventAttributeChanged,
-			gio.FileMonitorEventMoved,
-			gio.FileMonitorEventMovedOut,
-			gio.FileMonitorEventPreUnmount,
-			gio.FileMonitorEventUnmounted:
+		case gtk.FileMonitorEventChanged,
+			gtk.FileMonitorEventAttributeChanged,
+			gtk.FileMonitorEventMoved,
+			gtk.FileMonitorEventMovedOut,
+			gtk.FileMonitorEventPreUnmount,
+			gtk.FileMonitorEventUnmounted:
 		}
 	})
 }
