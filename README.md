@@ -42,10 +42,31 @@ To build it:
 
 - Go 1.27 or later
 - a C compiler and `pkg-config` (the GTK bindings use cgo)
-- the GTK 4 development files: `libgtk-4-dev` and `libgirepository1.0-dev`
-  on Debian and Ubuntu, `gtk4-devel` on Fedora
+- the GTK 4 development files: `libgtk-4-dev` on Debian and Ubuntu, 
+  `gtk4-devel` on Fedora
 
 ## Install
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/gsontag/kforward/main/install.sh | sh
+```
+
+This downloads the latest release, checks it, and installs it for the current
+user only:
+
+- the program in `~/.local/bin/kforward`
+- the launcher in `~/.local/share/applications`
+- the icon in `~/.local/share/icons`
+
+The release is built on Ubuntu 24.04, and runs on distributions at least as
+recent; on older ones, build it from source.
+
+To pick a version or another directory, set `KFORWARD_VERSION` or `PREFIX`:
+`curl -fsSL https://raw.githubusercontent.com/gsontag/kforward/main/install.sh | KFORWARD_VERSION=v0.2.0 sh`. To uninstall:
+`curl -fsSL https://raw.githubusercontent.com/gsontag/kforward/main/install.sh | sh -s -- --uninstall`. As for any script piped into a shell,
+you can read [install.sh](install.sh) first.
+
+### From source
 
 ```sh
 git clone https://github.com/gsontag/kforward.git
@@ -53,31 +74,9 @@ cd kforward
 make install
 ```
 
-This installs, for the current user only:
-
-- the program in `~/.local/bin/kforward`
-- the launcher in `~/.local/share/applications`
-- the icon in `~/.local/share/icons`
-
-Use `make install PREFIX=/usr/local` (as root) for a system-wide install,
-and `make uninstall` to remove it. The first build takes a minute or two:
-client-go is large.
-
-### From a release
-
-Download `kforward-VERSION-linux-amd64.tar.gz` and its `.sha256` file from
-the [releases](https://github.com/gsontag/kforward/releases), then:
-
-```sh
-sha256sum -c kforward-v0.1.0-linux-amd64.tar.gz.sha256
-tar xzf kforward-v0.1.0-linux-amd64.tar.gz
-cd kforward-v0.1.0-linux-amd64
-make install
-```
-
-No Go is needed: the archive holds the program, built on Ubuntu 24.04. It
-runs on distributions at least as recent; on older ones, build it from
-source.
+The first build takes a minute or two: client-go is large. Use
+`make install PREFIX=/usr/local` (as root) for a system-wide install, and
+`make uninstall` to remove it.
 
 ## Configuration
 

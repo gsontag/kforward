@@ -1,10 +1,5 @@
-APP_ID=fr.gsontag.kforward
-
 # Installation for the current user: no root needed
 PREFIX?=$(HOME)/.local
-BINDIR=$(PREFIX)/bin
-APPDIR=$(PREFIX)/share/applications
-ICONDIR=$(PREFIX)/share/icons/hicolor/scalable/apps
 
 GOCMD=go
 LINTCMD=golangci-lint
@@ -106,20 +101,16 @@ dist: build ## packs the binary, the desktop files and this Makefile into out/, 
 		rm -rf out/dist
 		mkdir -p out/dist/$(DIST_NAME)/out
 		cp out/$(BINARY_NAME) out/dist/$(DIST_NAME)/out/
-		cp -r data Makefile README.md LICENSE out/dist/$(DIST_NAME)/
+		cp -r data Makefile install.sh README.md LICENSE out/dist/$(DIST_NAME)/
 		tar -C out/dist -czf out/$(DIST_NAME).tar.gz $(DIST_NAME)
 		cd out && sha256sum $(DIST_NAME).tar.gz > $(DIST_NAME).tar.gz.sha256
 
 ## Install
 install: out/$(BINARY_NAME) ## installs the application for the current user, in PREFIX
-		install -Dm755 out/$(BINARY_NAME) $(BINDIR)/$(BINARY_NAME)
-		install -Dm644 data/$(APP_ID).svg $(ICONDIR)/$(APP_ID).svg
-		install -d $(APPDIR)
-		sed 's|@BINDIR@|$(BINDIR)|' data/$(APP_ID).desktop.in > $(APPDIR)/$(APP_ID).desktop
-		chmod 644 $(APPDIR)/$(APP_ID).desktop
+		PREFIX="$(PREFIX)" KFORWARD_SOURCE=. sh install.sh
 
 uninstall: ## removes what install added
-		rm -f $(BINDIR)/$(BINARY_NAME) $(ICONDIR)/$(APP_ID).svg $(APPDIR)/$(APP_ID).desktop
+		PREFIX="$(PREFIX)" sh install.sh --uninstall
 
 ## Test
 TEST_PKGS=./internal/...
