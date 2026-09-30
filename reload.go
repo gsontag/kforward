@@ -4,10 +4,10 @@ import (
 	"context"
 	"log/slog"
 
-	"github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/gio/v2"
 
 	"github.com/gsontag/kforward/internal/config"
+	"github.com/gsontag/kforward/internal/gtk"
 )
 
 // reloadDelay lets an editor finish writing: several events come for a save.
@@ -52,9 +52,9 @@ func (a *app) watchConfig() {
 // scheduleReload reloads once the events stop: each one postpones it.
 func (a *app) scheduleReload() {
 	if a.reloadTimer != 0 {
-		glib.SourceRemove(a.reloadTimer)
+		gtk.SourceRemove(a.reloadTimer)
 	}
-	a.reloadTimer = glib.TimeoutAdd(reloadDelay, func() {
+	a.reloadTimer = gtk.TimeoutAdd(reloadDelay, func() {
 		a.reloadTimer = 0
 		a.reload()
 	})

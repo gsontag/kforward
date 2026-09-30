@@ -2,15 +2,13 @@
 package main
 
 import (
-	"context"
 	"flag"
 	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
 
-	"github.com/diamondburned/gotk4/pkg/gio/v2"
-	"github.com/diamondburned/gotk4/pkg/gtk/v4"
+	"github.com/gsontag/kforward/internal/gtk"
 )
 
 // appID names the application for GTK and the desktop: the .desktop file and
@@ -39,7 +37,7 @@ func main() {
 	case *forward != "":
 		os.Exit(runForward(*forward))
 	}
-	application := gtk.NewApplication(appID, gio.ApplicationDefaultFlags)
+	application := gtk.NewApplication(appID)
 	a := &app{gtk: application, background: *background}
 	application.ConnectActivate(a.activate)
 	application.ConnectShutdown(a.shutdown)
@@ -54,7 +52,7 @@ func main() {
 
 	// Registering early tells whether an instance already runs: started in
 	// the background, there is nothing to bring to the front
-	if err := application.Register(context.Background()); err != nil {
+	if err := application.Register(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}

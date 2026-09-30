@@ -41,4 +41,5 @@ jobs:
       - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
+      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libgtk-4-dev
       - run: make it
